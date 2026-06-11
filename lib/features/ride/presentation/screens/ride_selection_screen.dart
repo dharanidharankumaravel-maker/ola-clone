@@ -47,10 +47,17 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
     final pickup = locationState.pickup;
     final destination = locationState.destination;
     if (pickup != null && destination != null) {
-      await _fetchRoute(
+      final repo = ref.read(mapRepositoryProvider);
+      final points = await repo.getRoutePolylines(
         LatLng(pickup.latitude, pickup.longitude),
         LatLng(destination.latitude, destination.longitude),
       );
+      if (mounted) {
+        setState(() {
+          _routePoints = points;
+        });
+        _fitMapToRoute();
+      }
     }
   }
 

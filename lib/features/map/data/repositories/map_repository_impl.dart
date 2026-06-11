@@ -46,6 +46,30 @@ class MapRepositoryImpl implements MapRepository {
 
   @override
   Future<List<LatLng>> getRoutePolylines(LatLng start, LatLng end) async {
-    return MapUtils.fetchRoute(start, end);
+    int retries = 2;
+    while (retries > 0) {
+      try {
+        final response = await _dio.get(
+          'http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=polyline',
+          options: Options(
+            sendTimeout: const Duration(seconds: 3),
+            receiveTimeout: const Duration(seconds: 3),
+          )
+        );
+        
+        if (response.statusCode == 200) {
+          final routes = response.data['routes'] as List;
+          if (routes.isNotEmpty) {
+            final poly = routes[0]['geometry'] as String;
+            return MapUtils.decodePolyline(poly);
+          }
+        }
+      } catch (_) {}
+      retries--;
+      if (retries > 0) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+    return [start, end];
   }
 }

@@ -18,37 +18,82 @@ class DestinationSearchScreen extends ConsumerStatefulWidget {
 }
 
 class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScreen> {
-  final _searchController = TextEditingController();
+  final _pickupController = TextEditingController();
+  final _destinationController = TextEditingController();
+  final _pickupFocus = FocusNode();
+  final _destinationFocus = FocusNode();
+
   bool _isSearching = false;
   List<AppLocation> _results = [];
   Timer? _debounce;
+  bool _isEditingPickup = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pickupFocus.addListener(() {
+      if (_pickupFocus.hasFocus) {
+        setState(() {
+          _isEditingPickup = true;
+          _results = [];
+        });
+        _onSearchChanged(_pickupController.text);
+      }
+    });
+
+    _destinationFocus.addListener(() {
+      if (_destinationFocus.hasFocus) {
+        setState(() {
+          _isEditingPickup = false;
+          _results = [];
+        });
+        _onSearchChanged(_destinationController.text);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locationState = ref.read(locationProvider);
+      final currentLocAsync = ref.read(currentLocationProvider);
+      
+      _pickupController.text = locationState.pickup?.shortAddress ?? currentLocAsync.value?.shortAddress ?? 'Current Location';
+      _destinationController.text = locationState.destination?.shortAddress ?? '';
+
+      if (widget.isPickup) {
+        _pickupFocus.requestFocus();
+      } else {
+        _destinationFocus.requestFocus();
+      }
+    });
+  }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _pickupController.dispose();
+    _destinationController.dispose();
+    _pickupFocus.dispose();
+    _destinationFocus.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    // If not actively searching or too short, show empty results or default suggestions
+    if (query.trim().length < 2) {
+      setState(() {
+        _results = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
     _debounce = Timer(const Duration(milliseconds: 400), () async {
-      if (query.trim().length < 2) {
-        setState(() {
-          _results = [];
-          _isSearching = false;
-        });
-        return;
-      }
-
       setState(() => _isSearching = true);
-
       try {
         final repo = ref.read(mapRepositoryProvider);
         final locations = await repo.searchLocations(query);
-
         if (!mounted) return;
-
         setState(() {
           _results = locations;
           _isSearching = false;
@@ -61,23 +106,26 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
   }
 
   Future<void> _handleSelectPlace(AppLocation place) async {
-    // Nominatim provides lat/lng in the search response, so we don't need a separate details API call
-    if (widget.isPickup) {
+    if (_isEditingPickup) {
       ref.read(locationProvider.notifier).setPickup(place);
-      final dest = ref.read(locationProvider).destination;
-      if (dest != null) {
-        context.replace('/ride-selection');
-      } else {
-        context.pop();
-      }
+      _pickupController.text = place.shortAddress ?? '';
+      _destinationFocus.requestFocus();
     } else {
       ref.read(locationProvider.notifier).setDestination(place);
+      _destinationController.text = place.shortAddress ?? '';
+      
+      // If we selected destination, make sure we have a pickup
       final pickup = ref.read(locationProvider).pickup;
-      if (pickup != null) {
-        context.replace('/ride-selection');
-      } else {
-        context.pop();
+      if (pickup == null) {
+        final currentLoc = ref.read(currentLocationProvider).value;
+        if (currentLoc != null) {
+          ref.read(locationProvider.notifier).setPickup(currentLoc);
+        } else {
+          _pickupFocus.requestFocus();
+          return;
+        }
       }
+      context.replace('/ride-selection');
     }
   }
 
@@ -97,46 +145,89 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                 border: Border(bottom: BorderSide(color: AppColors.border)),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                     onPressed: () => context.pop(),
                   ),
                   Expanded(
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.bgCard,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: AppColors.primaryGreen, size: 20),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: _onSearchChanged,
-                              autofocus: true,
-                              decoration: InputDecoration(
-                                hintText: widget.isPickup ? 'Search pickup location...' : 'Search destination...',
-                                border: InputBorder.none,
-                                isDense: true,
-                              ),
-                            ),
+                    child: Column(
+                      children: [
+                        // Pickup Field
+                        Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: _isEditingPickup ? AppColors.primaryGreen : AppColors.border),
                           ),
-                          if (_searchController.text.isNotEmpty)
-                            GestureDetector(
-                              onTap: () {
-                                _searchController.clear();
-                                _onSearchChanged('');
-                              },
-                              child: const Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
-                            ),
-                        ],
-                      ),
+                          child: Row(
+                            children: [
+                              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primaryGreen, shape: BoxShape.circle)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextField(
+                                  controller: _pickupController,
+                                  focusNode: _pickupFocus,
+                                  onChanged: _onSearchChanged,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Current Location',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                ),
+                              ),
+                              if (_pickupController.text.isNotEmpty && _isEditingPickup)
+                                GestureDetector(
+                                  onTap: () {
+                                    _pickupController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                  child: const Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Destination Field
+                        Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgCard,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: !_isEditingPickup ? AppColors.primaryGreen : AppColors.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextField(
+                                  controller: _destinationController,
+                                  focusNode: _destinationFocus,
+                                  onChanged: _onSearchChanged,
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search destination...',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                ),
+                              ),
+                              if (_destinationController.text.isNotEmpty && !_isEditingPickup)
+                                GestureDetector(
+                                  onTap: () {
+                                    _destinationController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                  child: const Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -149,11 +240,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                 padding: EdgeInsets.all(16.0),
                 child: Row(
                   children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
-                    ),
+                    SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen)),
                     SizedBox(width: 12),
                     Text('Searching...', style: TextStyle(color: AppColors.textSecondary)),
                   ],
@@ -162,37 +249,36 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
 
             // Results List
             Expanded(
-              child: _searchController.text.isEmpty
-                  ? Column(
+              child: (_isEditingPickup && _pickupController.text.isEmpty) || (!_isEditingPickup && _destinationController.text.isEmpty)
+                  ? ListView(
                       children: [
+                        if (_isEditingPickup)
+                          ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
+                              child: const Icon(Icons.my_location, color: AppColors.primaryGreen, size: 20),
+                            ),
+                            title: Text('Current Location', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                            subtitle: Text(currentLocationAsync.value?.shortAddress ?? 'Fetching...', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                            onTap: () {
+                              if (currentLocationAsync.value != null) {
+                                _handleSelectPlace(currentLocationAsync.value!);
+                              }
+                            },
+                          ),
+                        // Saved places or recent searches can go here
                         ListTile(
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryGreenLight,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.my_location, color: AppColors.primaryGreen, size: 20),
-                          ),
-                          title: Text('Current Location', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                          subtitle: Text(currentLocationAsync.value?.shortAddress ?? 'Fetching...', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-                          onTap: () {
-                            if (currentLocationAsync.value != null) {
-                              _handleSelectPlace(currentLocationAsync.value!);
-                            }
-                          },
+                          leading: const Icon(Icons.history, color: AppColors.textSecondary),
+                          title: const Text('Central Station'),
+                          subtitle: const Text('Park Town, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          onTap: () => _handleSelectPlace(const AppLocation(latitude: 13.0827, longitude: 80.2707, shortAddress: 'Central Station', formattedAddress: 'Park Town, Chennai')),
                         ),
-                        Expanded(
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.search, size: 48, color: AppColors.border),
-                                const SizedBox(height: 16),
-                                Text(widget.isPickup ? 'Search for a pickup location' : 'Search for a destination', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
-                              ],
-                            ),
-                          ),
+                        ListTile(
+                          leading: const Icon(Icons.history, color: AppColors.textSecondary),
+                          title: const Text('Airport'),
+                          subtitle: const Text('Meenambakkam, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          onTap: () => _handleSelectPlace(const AppLocation(latitude: 12.9716, longitude: 80.1898, shortAddress: 'Airport', formattedAddress: 'Meenambakkam, Chennai')),
                         ),
                       ],
                     )
@@ -203,10 +289,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                         return ListTile(
                           leading: Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryGreenLight,
-                              shape: BoxShape.circle,
-                            ),
+                            decoration: const BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
                             child: const Icon(Icons.location_on, color: AppColors.primaryGreen, size: 20),
                           ),
                           title: Text(place.shortAddress ?? '', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),

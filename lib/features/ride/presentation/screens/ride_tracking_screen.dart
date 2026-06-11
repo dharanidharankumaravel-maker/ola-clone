@@ -10,6 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../providers/ride_provider.dart';
 import '../widgets/driver_card.dart';
 import '../../../../core/utils/map_utils.dart';
+import '../../../map/presentation/providers/map_repository_provider.dart';
 
 const Map<String, String> statusLabels = {
   'searching': 'Finding driver...',
@@ -39,7 +40,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   final MapController _mapController = MapController();
   Timer? _simulationTimer;
   List<LatLng> _routePoints = [];
-  int _routeIndex = 0;
+  double _simulationProgress = 0.0;
   int _tickCount = 0;
 
   @override
@@ -67,18 +68,40 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           _tickCount = 0;
         }
       } else if (currentRide.status == 'trip_started') {
-        if (_routePoints.isNotEmpty && _routeIndex < _routePoints.length - 1) {
-          int step = (_routePoints.length / 10).ceil();
-          if (step < 1) step = 1;
-          _routeIndex += step;
+        if (_routePoints.isNotEmpty) {
+          _simulationProgress += 0.05; // 20 second mock trip
           
-          if (_routeIndex >= _routePoints.length - 1) {
-            _routeIndex = _routePoints.length - 1;
+          if (_simulationProgress >= 1.0) {
+            _simulationProgress = 1.0;
             ref.read(currentRideProvider.notifier).updateRideStatus('completed');
             timer.cancel();
           }
           
-          final nextPoint = _routePoints[_routeIndex];
+          LatLng nextPoint = _routePoints.last;
+
+          if (_routePoints.length == 2) {
+            final start = _routePoints.first;
+            final end = _routePoints.last;
+            final lat = start.latitude + (end.latitude - start.latitude) * _simulationProgress;
+            final lng = start.longitude + (end.longitude - start.longitude) * _simulationProgress;
+            nextPoint = LatLng(lat, lng);
+          } else {
+            double totalSegments = (_routePoints.length - 1).toDouble();
+            double exactIndex = _simulationProgress * totalSegments;
+            int baseIndex = exactIndex.floor();
+            
+            if (baseIndex >= _routePoints.length - 1) {
+              nextPoint = _routePoints.last;
+            } else {
+              double remainder = exactIndex - baseIndex;
+              final p1 = _routePoints[baseIndex];
+              final p2 = _routePoints[baseIndex + 1];
+              final lat = p1.latitude + (p2.latitude - p1.latitude) * remainder;
+              final lng = p1.longitude + (p2.longitude - p1.longitude) * remainder;
+              nextPoint = LatLng(lat, lng);
+            }
+          }
+          
           final updatedRide = currentRide.copyWith(
             driver: currentRide.driver!.copyWith(
               latitude: nextPoint.latitude,
@@ -98,7 +121,8 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     final currentRide = ref.read(currentRideProvider);
     if (currentRide == null) return;
 
-    final points = await MapUtils.fetchRoute(
+    final repo = ref.read(mapRepositoryProvider);
+    final points = await repo.getRoutePolylines(
       LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude),
       LatLng(currentRide.destination.latitude, currentRide.destination.longitude),
     );
