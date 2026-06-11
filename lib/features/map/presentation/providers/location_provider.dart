@@ -159,3 +159,35 @@ class LocationNotifier extends Notifier<LocationState> {
 final locationProvider = NotifierProvider<LocationNotifier, LocationState>(() {
   return LocationNotifier();
 });
+
+class SavedPlace {
+  final String title;
+  final String? subtitle;
+  final AppLocation location;
+
+  SavedPlace({required this.title, this.subtitle, required this.location});
+}
+
+class SavedPlacesNotifier extends Notifier<List<SavedPlace>> {
+  @override
+  List<SavedPlace> build() => [
+    SavedPlace(
+      title: 'Work',
+      subtitle: 'Tech Park, OMR, Chennai',
+      location: const AppLocation(
+        latitude: 12.9716,
+        longitude: 80.2536,
+        shortAddress: 'Tech Park',
+        formattedAddress: 'Tech Park, OMR, Chennai',
+      ),
+    ),
+  ];
+
+  void addPlace(SavedPlace place) {
+    state = [...state, place];
+  }
+}
+
+final savedPlacesProvider = NotifierProvider<SavedPlacesNotifier, List<SavedPlace>>(() {
+  return SavedPlacesNotifier();
+});

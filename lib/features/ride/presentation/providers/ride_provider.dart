@@ -87,3 +87,20 @@ class RideHistoryNotifier extends Notifier<List<Ride>> {
 final rideHistoryProvider = NotifierProvider<RideHistoryNotifier, List<Ride>>(() {
   return RideHistoryNotifier();
 });
+
+class ScheduledRidesNotifier extends Notifier<List<Ride>> {
+  @override
+  List<Ride> build() => [];
+  
+  void scheduleRide(Ride ride) {
+    state = [...state, ride];
+  }
+  
+  void cancelRide(String rideId) {
+    state = state.where((r) => r.id != rideId).toList();
+  }
+}
+
+final scheduledRidesProvider = NotifierProvider<ScheduledRidesNotifier, List<Ride>>(() {
+  return ScheduledRidesNotifier();
+});

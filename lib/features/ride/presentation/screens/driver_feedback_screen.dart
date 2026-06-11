@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/ride_provider.dart';
 
 class DriverFeedbackScreen extends ConsumerStatefulWidget {
@@ -45,7 +46,29 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
 
   void _handleSubmit() {
     final currentRide = ref.read(currentRideProvider);
+    final promoDiscount = ref.read(promoDiscountProvider);
+    
     if (currentRide != null) {
+      // Deduct from wallet if Ola Money was used
+      if (currentRide.paymentMethod == 'ola_money') {
+        final double finalFare = (currentRide.fareEstimate.total - promoDiscount) + _tipAmount;
+        final user = ref.read(authProvider).value;
+        if (user != null) {
+          ref.read(authProvider.notifier).updateUser(
+            user.copyWith(walletBalance: user.walletBalance - finalFare)
+          );
+        }
+        ref.read(walletTransactionProvider.notifier).addTransaction(
+          WalletTransaction(
+            id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+            amount: finalFare,
+            type: 'debit',
+            description: 'Ride to ${currentRide.destination.shortAddress}',
+            createdAt: DateTime.now(),
+          )
+        );
+      }
+
       // Save ride to history before clearing
       ref.read(rideHistoryProvider.notifier).addRide(currentRide);
       ref.read(currentRideProvider.notifier).clearCurrentRide();

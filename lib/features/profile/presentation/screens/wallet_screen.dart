@@ -19,12 +19,6 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   bool _isTopping = false;
   final List<int> _topupOptions = [100, 250, 500, 1000];
 
-  final List<Map<String, dynamic>> _mockTransactions = [
-    {'id': 'tx_1', 'amount': 250, 'type': 'debit', 'description': 'Ride to Airport', 'createdAt': DateTime.now().subtract(const Duration(hours: 2))},
-    {'id': 'tx_2', 'amount': 1000, 'type': 'topup', 'description': 'Added to wallet', 'createdAt': DateTime.now().subtract(const Duration(days: 1))},
-    {'id': 'tx_3', 'amount': 150, 'type': 'debit', 'description': 'Ride to Office', 'createdAt': DateTime.now().subtract(const Duration(days: 2))},
-  ];
-
   void _handleTopup() async {
     setState(() => _isTopping = true);
     
@@ -38,6 +32,16 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           user.copyWith(walletBalance: user.walletBalance + _selectedAmount),
         );
       }
+      
+      ref.read(walletTransactionProvider.notifier).addTransaction(
+        WalletTransaction(
+          id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
+          amount: _selectedAmount.toDouble(),
+          type: 'topup',
+          description: 'Added to wallet',
+          createdAt: DateTime.now(),
+        )
+      );
       
       showDialog(
         context: context,
@@ -59,6 +63,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).value;
     final balance = user?.walletBalance ?? 500.0; // using 500.0 if not logged in just to show UI
+    final transactions = ref.watch(walletTransactionProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgSurface,
@@ -147,9 +152,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
-                final tx = _mockTransactions[index];
-                final isCredit = tx['type'] == 'topup';
-                final dateStr = DateFormat('MMM dd, yyyy • hh:mm a').format(tx['createdAt']);
+                final tx = transactions[index];
+                final isCredit = tx.type == 'topup';
+                final dateStr = DateFormat('MMM dd, yyyy • hh:mm a').format(tx.createdAt);
                 
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -176,14 +181,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(tx['description'], style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                            Text(tx.description, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Text(dateStr, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                           ],
                         ),
                       ),
                       Text(
-                        '${isCredit ? '+' : '-'}₹${tx['amount']}',
+                        '${isCredit ? '+' : '-'}₹${tx.amount.toStringAsFixed(0)}',
                         style: AppTextStyles.bodyMedium.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isCredit ? Colors.green : Colors.red,
@@ -193,7 +198,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                   ),
                 );
               },
-              childCount: _mockTransactions.length,
+              childCount: transactions.length,
             ),
           ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 40)),

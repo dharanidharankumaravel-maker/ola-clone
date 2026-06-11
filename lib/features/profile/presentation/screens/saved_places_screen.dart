@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../map/domain/entities/app_location.dart';
+import '../../../map/presentation/providers/location_provider.dart';
 
-class SavedPlacesScreen extends StatelessWidget {
+class SavedPlacesScreen extends ConsumerWidget {
   const SavedPlacesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedPlaces = ref.watch(savedPlacesProvider);
+    final homePlace = savedPlaces.where((p) => p.title.toLowerCase() == 'home').firstOrNull;
+    final workPlace = savedPlaces.where((p) => p.title.toLowerCase() == 'work').firstOrNull;
+    final otherPlaces = savedPlaces.where((p) => p.title.toLowerCase() != 'home' && p.title.toLowerCase() != 'work').toList();
+
     return Scaffold(
       backgroundColor: AppColors.bgSurface,
       appBar: AppBar(
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: const Text('Saved Places', style: AppTextStyles.h3),
@@ -25,25 +33,52 @@ class SavedPlacesScreen extends StatelessWidget {
         children: [
           _buildSavedPlace(
             title: 'Home',
-            subtitle: 'Add home address',
+            subtitle: homePlace?.subtitle ?? 'Add home address',
             icon: Icons.home_outlined,
-            isAdded: false,
+            isAdded: homePlace != null,
           ),
           const SizedBox(height: 16),
           _buildSavedPlace(
             title: 'Work',
-            subtitle: 'Tech Park, OMR, Chennai',
+            subtitle: workPlace?.subtitle ?? 'Add work address',
             icon: Icons.work_outline,
-            isAdded: true,
+            isAdded: workPlace != null,
           ),
           const SizedBox(height: 24),
           const Text('Other Places', style: AppTextStyles.sectionTitle),
           const SizedBox(height: 16),
+          
+          ...otherPlaces.map((p) => Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: _buildSavedPlace(
+              title: p.title,
+              subtitle: p.subtitle ?? '',
+              icon: Icons.location_on_outlined,
+              isAdded: true,
+            ),
+          )),
+          
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              ref.read(savedPlacesProvider.notifier).addPlace(
+                SavedPlace(
+                  title: 'Gym',
+                  subtitle: 'Fitness Center, Velachery',
+                  location: const AppLocation(
+                    latitude: 12.9816,
+                    longitude: 80.2236,
+                    shortAddress: 'Gym',
+                    formattedAddress: 'Fitness Center, Velachery',
+                  ),
+                ),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added new mock place dynamically!'), backgroundColor: AppColors.primaryGreen),
+              );
+            },
             child: Row(
               children: [
-                Icon(Icons.add_circle_outline, color: AppColors.primaryGreen, size: 28),
+                const Icon(Icons.add_circle_outline, color: AppColors.primaryGreen, size: 28),
                 const SizedBox(width: 16),
                 Text('Add a new place', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
               ],
@@ -66,7 +101,7 @@ class SavedPlacesScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.bgSurface,
               shape: BoxShape.circle,
             ),
@@ -84,10 +119,9 @@ class SavedPlacesScreen extends StatelessWidget {
             ),
           ),
           if (isAdded)
-            Icon(Icons.more_vert, color: AppColors.textSecondary),
+            const Icon(Icons.more_vert, color: AppColors.textSecondary),
         ],
       ),
     );
   }
 }
-

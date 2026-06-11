@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../map/presentation/providers/location_provider.dart';
+import '../../domain/entities/ride.dart';
+import '../../domain/entities/ride_option.dart';
 import '../providers/ride_provider.dart';
 
 class ScheduleRideScreen extends ConsumerStatefulWidget {
@@ -88,6 +90,47 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
     Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
       setState(() => _isScheduling = false);
+      
+      final locationState = ref.read(locationProvider);
+      final pickup = locationState.pickup;
+      final destination = locationState.destination;
+      
+      if (pickup != null && destination != null) {
+        final scheduled = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedHour,
+          _selectedMinute,
+        );
+        
+        final mockRide = Ride(
+          id: 'sch_${DateTime.now().millisecondsSinceEpoch}',
+          userId: 'usr_1',
+          status: 'scheduled',
+          pickup: pickup,
+          destination: destination,
+          distance: 5.0,
+          duration: 15,
+          rideType: 'mini',
+          fareEstimate: FareEstimate(
+            baseFare: 50,
+            distanceFare: 60,
+            timeFare: 15,
+            surgeMultiplier: 1,
+            total: 125,
+            currency: 'INR',
+            distance: 5.0,
+            duration: 15,
+          ),
+          paymentMethod: 'cash',
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+          scheduledAt: scheduled.toIso8601String(),
+        );
+        
+        ref.read(scheduledRidesProvider.notifier).scheduleRide(mockRide);
+      }
       
       showDialog(
         context: context,

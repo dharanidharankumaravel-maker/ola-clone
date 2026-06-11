@@ -63,3 +63,35 @@ class Auth extends _$Auth {
     state = const AsyncValue.data(null);
   }
 }
+
+class WalletTransaction {
+  final String id;
+  final double amount;
+  final String type; // 'debit' or 'topup'
+  final String description;
+  final DateTime createdAt;
+
+  WalletTransaction({
+    required this.id,
+    required this.amount,
+    required this.type,
+    required this.description,
+    required this.createdAt,
+  });
+}
+
+class WalletTransactionNotifier extends Notifier<List<WalletTransaction>> {
+  @override
+  List<WalletTransaction> build() => [
+    WalletTransaction(id: 'tx_1', amount: 250, type: 'debit', description: 'Ride to Airport', createdAt: DateTime.now().subtract(const Duration(hours: 2))),
+    WalletTransaction(id: 'tx_2', amount: 1000, type: 'topup', description: 'Added to wallet', createdAt: DateTime.now().subtract(const Duration(days: 1))),
+  ];
+  
+  void addTransaction(WalletTransaction tx) {
+    state = [tx, ...state];
+  }
+}
+
+final walletTransactionProvider = NotifierProvider<WalletTransactionNotifier, List<WalletTransaction>>(() {
+  return WalletTransactionNotifier();
+});
