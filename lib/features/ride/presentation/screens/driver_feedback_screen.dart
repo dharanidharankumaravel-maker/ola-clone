@@ -16,6 +16,8 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
   int _rating = 0;
   final Set<String> _selectedChips = {};
   final TextEditingController _commentController = TextEditingController();
+  double _tipAmount = 0;
+  bool _showFareBreakdown = false;
 
   final List<String> _goodFeedback = [
     'Excellent Service',
@@ -33,6 +35,8 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
     'Wrong Route'
   ];
 
+  final List<double> _tipOptions = [10.0, 20.0, 50.0];
+
   @override
   void dispose() {
     _commentController.dispose();
@@ -40,10 +44,13 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
   }
 
   void _handleSubmit() {
-    // Clear the current ride
-    ref.read(currentRideProvider.notifier).clearCurrentRide();
+    final currentRide = ref.read(currentRideProvider);
+    if (currentRide != null) {
+      // Save ride to history before clearing
+      ref.read(rideHistoryProvider.notifier).addRide(currentRide);
+      ref.read(currentRideProvider.notifier).clearCurrentRide();
+    }
     
-    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Thank you for your feedback!'),
@@ -51,7 +58,6 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
       ),
     );
 
-    // Go back to home
     context.go('/');
   }
 
@@ -60,7 +66,6 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
     final currentRide = ref.watch(currentRideProvider);
     final promoDiscount = ref.watch(promoDiscountProvider);
 
-    // Fallback if accessed without a completed ride
     if (currentRide == null || currentRide.driver == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Feedback')),
@@ -73,7 +78,8 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
       );
     }
 
-    final finalFare = (currentRide.fareEstimate.total - promoDiscount).toStringAsFixed(0);
+    final double baseTotal = currentRide.fareEstimate.total - promoDiscount;
+    final double finalFare = baseTotal + _tipAmount;
     final chipsToDisplay = _rating > 0 && _rating < 4 ? _badFeedback : _goodFeedback;
 
     return Scaffold(
@@ -89,11 +95,48 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                 Text('Trip Completed', style: AppTextStyles.h2.copyWith(color: AppColors.primaryGreen)),
                 const SizedBox(height: 16),
                 
-                // Fare Display
-                Text('₹$finalFare', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
+                // Final Fare
+                Text('₹${finalFare.toStringAsFixed(0)}', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
                 Text('Paid via ${currentRide.paymentMethod == 'cash' ? 'Cash' : 'Ola Money'}', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
                 
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
+                
+                // Fare Breakdown Toggle
+                GestureDetector(
+                  onTap: () => setState(() => _showFareBreakdown = !_showFareBreakdown),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Fare Breakdown', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
+                      Icon(_showFareBreakdown ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: AppColors.primaryGreen),
+                    ],
+                  ),
+                ),
+                
+                // Expandable Fare Breakdown
+                if (_showFareBreakdown)
+                  Container(
+                    margin: const EdgeInsets.only(top: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildBreakdownRow('Ride Fare', '₹${currentRide.fareEstimate.total.toStringAsFixed(0)}'),
+                        if (promoDiscount > 0)
+                          _buildBreakdownRow('Promo Applied', '-₹${promoDiscount.toStringAsFixed(0)}', isDiscount: true),
+                        if (_tipAmount > 0)
+                          _buildBreakdownRow('Tip', '₹${_tipAmount.toStringAsFixed(0)}', isHighlight: true),
+                        const Divider(color: AppColors.border, height: 24),
+                        _buildBreakdownRow('Total Paid', '₹${finalFare.toStringAsFixed(0)}', isTotal: true),
+                      ],
+                    ),
+                  ),
+                
+                const SizedBox(height: 32),
 
                 // Driver Details
                 Container(
@@ -148,6 +191,40 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                 ),
 
                 if (_rating > 0) ...[
+                  const SizedBox(height: 32),
+                  
+                  // Tipping Section
+                  Text('Add a tip for ${currentRide.driver!.name}', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white)),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ..._tipOptions.map((tip) {
+                        final isSelected = _tipAmount == tip;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _tipAmount = isSelected ? 0 : tip;
+                            });
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.primaryGreen : AppColors.bgCard,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border),
+                            ),
+                            child: Text('₹${tip.toStringAsFixed(0)}', style: TextStyle(
+                              color: isSelected ? Colors.black : Colors.white,
+                              fontWeight: FontWeight.bold,
+                            )),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                  
                   const SizedBox(height: 32),
                   Text('What did you like?', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white)),
                   const SizedBox(height: 16),
@@ -238,6 +315,30 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownRow(String label, String value, {bool isDiscount = false, bool isHighlight = false, bool isTotal = false}) {
+    Color color = Colors.white;
+    if (isDiscount) color = AppColors.primaryGreen;
+    if (isHighlight) color = Colors.amber;
+    if (isTotal) color = AppColors.primaryGreen;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTextStyles.bodyMedium.copyWith(
+            color: isTotal ? Colors.white : AppColors.textSecondary,
+            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+          )),
+          Text(value, style: AppTextStyles.bodyMedium.copyWith(
+            color: color,
+            fontWeight: isTotal || isHighlight ? FontWeight.bold : FontWeight.normal,
+          )),
+        ],
       ),
     );
   }

@@ -74,3 +74,16 @@ class CurrentRideNotifier extends Notifier<Ride?> {
 final currentRideProvider = NotifierProvider<CurrentRideNotifier, Ride?>(() {
   return CurrentRideNotifier();
 });
+
+class RideHistoryNotifier extends Notifier<List<Ride>> {
+  @override
+  List<Ride> build() => [];
+  
+  void addRide(Ride ride) {
+    state = [ride, ...state];
+  }
+}
+
+final rideHistoryProvider = NotifierProvider<RideHistoryNotifier, List<Ride>>(() {
+  return RideHistoryNotifier();
+});
