@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -281,7 +282,21 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                   ],
                 ),
                 child: isEstimating
-                    ? const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen))
+                    ? ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
+                        itemCount: 4,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          return Container(
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.bgCard,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1200.ms, color: AppColors.border.withOpacity(0.5));
+                        },
+                      )
                     : Column(
                         children: [
                           Expanded(
@@ -294,7 +309,10 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                 final option = rideOptions[index];
                                 final isSelected = selectedRideType == option.type;
                                 return GestureDetector(
-                                  onTap: () => ref.read(selectedRideTypeProvider.notifier).update(option.type),
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    ref.read(selectedRideTypeProvider.notifier).update(option.type);
+                                  },
                                   child: Container(
                                     padding: const EdgeInsets.all(16),
                                     decoration: BoxDecoration(

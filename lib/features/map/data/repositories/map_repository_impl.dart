@@ -72,4 +72,44 @@ class MapRepositoryImpl implements MapRepository {
     }
     return [start, end];
   }
+
+  @override
+  Future<AppLocation?> getReverseGeocode(double lat, double lng) async {
+    try {
+      final response = await _dio.get(
+        'https://nominatim.openstreetmap.org/reverse',
+        queryParameters: {
+          'lat': lat,
+          'lon': lng,
+          'format': 'json',
+          'addressdetails': 1,
+        },
+        options: Options(
+          headers: {'User-Agent': 'com.ola.customer'},
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data['error'] != null) return null;
+        
+        final address = data['address'] as Map<String, dynamic>?;
+        final road = address?['road'] ?? address?['neighbourhood'] ?? address?['suburb'] ?? '';
+        final city = address?['city'] ?? address?['town'] ?? address?['village'] ?? '';
+        
+        String shortName = road.isNotEmpty ? road : (data['name'] ?? 'Unknown Location');
+        
+        return AppLocation(
+          latitude: lat,
+          longitude: lng,
+          shortAddress: shortName,
+          formattedAddress: data['display_name'] ?? '$shortName, $city',
+          placeId: data['place_id']?.toString() ?? '',
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
 }

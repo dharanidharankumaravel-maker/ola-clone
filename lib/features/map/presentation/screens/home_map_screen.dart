@@ -4,9 +4,12 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:async';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../providers/location_provider.dart';
+import '../providers/map_repository_provider.dart';
+import '../providers/ghost_cars_provider.dart';
 
 class HomeMapScreen extends ConsumerStatefulWidget {
   const HomeMapScreen({super.key});
@@ -18,6 +21,15 @@ class HomeMapScreen extends ConsumerStatefulWidget {
 class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
   final MapController _mapController = MapController();
   bool _hasCentered = false;
+  Timer? _debounceTimer;
+  bool _isFetchingReverseGeocode = false;
+  bool _isDragging = false;
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +66,34 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 options: MapOptions(
                   initialCenter: initialPos,
                   initialZoom: 15,
+                  onPositionChanged: (position, hasGesture) {
+                    if (hasGesture) {
+                      if (!_isDragging) {
+                        setState(() => _isDragging = true);
+                      }
+                      
+                      _debounceTimer?.cancel();
+                      _debounceTimer = Timer(const Duration(milliseconds: 600), () async {
+                        if (!mounted) return;
+                        setState(() {
+                          _isDragging = false;
+                          _isFetchingReverseGeocode = true;
+                        });
+                        
+                        final repo = ref.read(mapRepositoryProvider);
+                        final center = _mapController.camera.center;
+                        final address = await repo.getReverseGeocode(center.latitude, center.longitude);
+                        
+                        if (mounted && address != null) {
+                          ref.read(locationProvider.notifier).setPickup(address);
+                        }
+                        
+                        if (mounted) {
+                          setState(() => _isFetchingReverseGeocode = false);
+                        }
+                      });
+                    }
+                  },
                   onMapReady: () {
                     if (location != null && !_hasCentered) {
                       _hasCentered = true;
@@ -69,6 +109,27 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                     urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.ola.customer',
                   ),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final ghostCars = ref.watch(ghostCarsProvider);
+                      return MarkerLayer(
+                        markers: ghostCars.map((car) {
+                          return Marker(
+                            point: LatLng(car.latitude, car.longitude),
+                            width: 32,
+                            height: 32,
+                            child: Transform.rotate(
+                              angle: car.heading * 3.14159 / 180,
+                              child: Image.asset('assets/car_top.png', 
+                                errorBuilder: (_,__,___) => const Icon(Icons.directions_car, color: AppColors.textSecondary, size: 24),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+                  // User's blue dot
                   if (location != null)
                     MarkerLayer(
                       markers: [
@@ -76,7 +137,15 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                           point: LatLng(location.latitude, location.longitude),
                           width: 40,
                           height: 40,
-                          child: const Icon(Icons.my_location, color: Colors.blue),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.blue.withOpacity(0.2),
+                            ),
+                            child: const Center(
+                              child: Icon(Icons.my_location, color: Colors.blue, size: 20),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -133,7 +202,9 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              currentPickup?.shortAddress ?? currentLocationAsync.value?.shortAddress ?? 'Fetching location...',
+                              _isDragging || _isFetchingReverseGeocode 
+                                ? 'Fetching location...' 
+                                : (currentPickup?.shortAddress ?? currentLocationAsync.value?.shortAddress ?? 'Fetching location...'),
                               style: AppTextStyles.bodyMedium,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -145,6 +216,38 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+
+          // Center Pin (Drag to select location)
+          IgnorePointer(
+            child: Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 40), // offset by half icon height to put tip on center
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _isDragging ? 'Drop pin here' : 'Pick up here',
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Icon(
+                      Icons.location_on,
+                      size: 40,
+                      color: _isDragging ? AppColors.textSecondary : AppColors.primaryGreen,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
