@@ -106,7 +106,7 @@ class DriverCard extends StatelessWidget {
             children: [
               _buildActionButton(Icons.call, 'Call', onCall),
               _buildActionButton(Icons.message, 'Message', onMessage),
-              _buildActionButton(Icons.share, 'Share ETA', onShareEta),
+              _buildActionButton(Icons.share, 'Share details', onShareEta),
             ],
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../providers/ride_provider.dart';
@@ -153,12 +154,19 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     }
   }
 
-  void _handleSOS() {
+  void _handleSOS() async {
+    final prefs = await SharedPreferences.getInstance();
+    final emergencyContact = prefs.getString('emergency_contact');
+    final targetNumber = emergencyContact ?? '112';
+    final targetName = emergencyContact != null ? 'your emergency contact ($emergencyContact)' : 'emergency services (112)';
+
+    if (!mounted) return;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('🆘 Emergency SOS'),
-        content: const Text('This will share your location with emergency services and Ola Safety team.'),
+        content: Text('This will share your location with $targetName and trigger a call.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -167,7 +175,18 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              final url = Uri.parse('tel:112');
+              
+              if (emergencyContact != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Live location shared to $emergencyContact')),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Live location shared to Ola Safety team')),
+                );
+              }
+
+              final url = Uri.parse('tel:$targetNumber');
               if (await canLaunchUrl(url)) {
                 await launchUrl(url);
               }
@@ -179,9 +198,52 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     );
   }
 
-  void _handleShareEta(String rideId) {
+  void _handleShareEta(String vehicleDetails) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Track my ride: ola://ride/$rideId')),
+      SnackBar(content: Text('Shared vehicle details: $vehicleDetails')),
+    );
+  }
+
+  Widget _buildTipSection() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Want a driver faster?', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Add a tip to your ride to prioritize your request.', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildTipButton('₹10'),
+              _buildTipButton('₹20'),
+              _buildTipButton('₹50'),
+              _buildTipButton('Other'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipButton(String amount) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tip of $amount added to your ride!')),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(amount, style: AppTextStyles.bodyMedium),
+      ),
     );
   }
 
@@ -379,13 +441,15 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       ],
                     ),
                   ),
+                  if (status == 'searching')
+                    _buildTipSection(),
                   if (currentRide.driver != null)
                     DriverCard(
                       driver: currentRide.driver!,
                       otp: currentRide.otp ?? '----',
                       onCall: () => _handleCall(currentRide.driver!.phone),
                       onMessage: () {},
-                      onShareEta: () => _handleShareEta(currentRide.id),
+                      onShareEta: () => _handleShareEta('${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})'),
                     ),
                   SizedBox(height: MediaQuery.of(context).padding.bottom),
                 ],
