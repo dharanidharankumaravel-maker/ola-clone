@@ -29,7 +29,7 @@ class AuthRepositoryImpl implements AuthRepository {
       name: phone == '+919876543210' ? 'Veronica' : 'New User',
       rating: 4.8,
       createdAt: DateTime.now(),
-      walletBalance: 1500,
+      walletBalance: 0,
     );
     
     final tokens = {
@@ -49,7 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
       phone: '+919876543210',
       name: 'Veronica',
       createdAt: DateTime.now(),
-      walletBalance: 1500,
+      walletBalance: 0,
     );
   }
 

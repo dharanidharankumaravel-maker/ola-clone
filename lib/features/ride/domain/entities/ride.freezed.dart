@@ -303,9 +303,311 @@ as double,
 
 
 /// @nodoc
+mixin _$ParcelDetails {
+
+ String get type;// 'send' or 'receive'
+ String get senderName; String get senderPhone; String get receiverName; String get receiverPhone; String get contents; String get weightCategory; List<String>? get imagePaths; String? get videoPath;
+/// Create a copy of ParcelDetails
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$ParcelDetailsCopyWith<ParcelDetails> get copyWith => _$ParcelDetailsCopyWithImpl<ParcelDetails>(this as ParcelDetails, _$identity);
+
+  /// Serializes this ParcelDetails to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ParcelDetails&&(identical(other.type, type) || other.type == type)&&(identical(other.senderName, senderName) || other.senderName == senderName)&&(identical(other.senderPhone, senderPhone) || other.senderPhone == senderPhone)&&(identical(other.receiverName, receiverName) || other.receiverName == receiverName)&&(identical(other.receiverPhone, receiverPhone) || other.receiverPhone == receiverPhone)&&(identical(other.contents, contents) || other.contents == contents)&&(identical(other.weightCategory, weightCategory) || other.weightCategory == weightCategory)&&const DeepCollectionEquality().equals(other.imagePaths, imagePaths)&&(identical(other.videoPath, videoPath) || other.videoPath == videoPath));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,senderName,senderPhone,receiverName,receiverPhone,contents,weightCategory,const DeepCollectionEquality().hash(imagePaths),videoPath);
+
+@override
+String toString() {
+  return 'ParcelDetails(type: $type, senderName: $senderName, senderPhone: $senderPhone, receiverName: $receiverName, receiverPhone: $receiverPhone, contents: $contents, weightCategory: $weightCategory, imagePaths: $imagePaths, videoPath: $videoPath)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $ParcelDetailsCopyWith<$Res>  {
+  factory $ParcelDetailsCopyWith(ParcelDetails value, $Res Function(ParcelDetails) _then) = _$ParcelDetailsCopyWithImpl;
+@useResult
+$Res call({
+ String type, String senderName, String senderPhone, String receiverName, String receiverPhone, String contents, String weightCategory, List<String>? imagePaths, String? videoPath
+});
+
+
+
+
+}
+/// @nodoc
+class _$ParcelDetailsCopyWithImpl<$Res>
+    implements $ParcelDetailsCopyWith<$Res> {
+  _$ParcelDetailsCopyWithImpl(this._self, this._then);
+
+  final ParcelDetails _self;
+  final $Res Function(ParcelDetails) _then;
+
+/// Create a copy of ParcelDetails
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? senderName = null,Object? senderPhone = null,Object? receiverName = null,Object? receiverPhone = null,Object? contents = null,Object? weightCategory = null,Object? imagePaths = freezed,Object? videoPath = freezed,}) {
+  return _then(_self.copyWith(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,senderName: null == senderName ? _self.senderName : senderName // ignore: cast_nullable_to_non_nullable
+as String,senderPhone: null == senderPhone ? _self.senderPhone : senderPhone // ignore: cast_nullable_to_non_nullable
+as String,receiverName: null == receiverName ? _self.receiverName : receiverName // ignore: cast_nullable_to_non_nullable
+as String,receiverPhone: null == receiverPhone ? _self.receiverPhone : receiverPhone // ignore: cast_nullable_to_non_nullable
+as String,contents: null == contents ? _self.contents : contents // ignore: cast_nullable_to_non_nullable
+as String,weightCategory: null == weightCategory ? _self.weightCategory : weightCategory // ignore: cast_nullable_to_non_nullable
+as String,imagePaths: freezed == imagePaths ? _self.imagePaths : imagePaths // ignore: cast_nullable_to_non_nullable
+as List<String>?,videoPath: freezed == videoPath ? _self.videoPath : videoPath // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [ParcelDetails].
+extension ParcelDetailsPatterns on ParcelDetails {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ParcelDetails value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ParcelDetails() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ParcelDetails value)  $default,){
+final _that = this;
+switch (_that) {
+case _ParcelDetails():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ParcelDetails value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ParcelDetails() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  String senderName,  String senderPhone,  String receiverName,  String receiverPhone,  String contents,  String weightCategory,  List<String>? imagePaths,  String? videoPath)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ParcelDetails() when $default != null:
+return $default(_that.type,_that.senderName,_that.senderPhone,_that.receiverName,_that.receiverPhone,_that.contents,_that.weightCategory,_that.imagePaths,_that.videoPath);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  String senderName,  String senderPhone,  String receiverName,  String receiverPhone,  String contents,  String weightCategory,  List<String>? imagePaths,  String? videoPath)  $default,) {final _that = this;
+switch (_that) {
+case _ParcelDetails():
+return $default(_that.type,_that.senderName,_that.senderPhone,_that.receiverName,_that.receiverPhone,_that.contents,_that.weightCategory,_that.imagePaths,_that.videoPath);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  String senderName,  String senderPhone,  String receiverName,  String receiverPhone,  String contents,  String weightCategory,  List<String>? imagePaths,  String? videoPath)?  $default,) {final _that = this;
+switch (_that) {
+case _ParcelDetails() when $default != null:
+return $default(_that.type,_that.senderName,_that.senderPhone,_that.receiverName,_that.receiverPhone,_that.contents,_that.weightCategory,_that.imagePaths,_that.videoPath);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _ParcelDetails implements ParcelDetails {
+  const _ParcelDetails({required this.type, required this.senderName, required this.senderPhone, required this.receiverName, required this.receiverPhone, required this.contents, required this.weightCategory, final  List<String>? imagePaths, this.videoPath}): _imagePaths = imagePaths;
+  factory _ParcelDetails.fromJson(Map<String, dynamic> json) => _$ParcelDetailsFromJson(json);
+
+@override final  String type;
+// 'send' or 'receive'
+@override final  String senderName;
+@override final  String senderPhone;
+@override final  String receiverName;
+@override final  String receiverPhone;
+@override final  String contents;
+@override final  String weightCategory;
+ final  List<String>? _imagePaths;
+@override List<String>? get imagePaths {
+  final value = _imagePaths;
+  if (value == null) return null;
+  if (_imagePaths is EqualUnmodifiableListView) return _imagePaths;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(value);
+}
+
+@override final  String? videoPath;
+
+/// Create a copy of ParcelDetails
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$ParcelDetailsCopyWith<_ParcelDetails> get copyWith => __$ParcelDetailsCopyWithImpl<_ParcelDetails>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$ParcelDetailsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ParcelDetails&&(identical(other.type, type) || other.type == type)&&(identical(other.senderName, senderName) || other.senderName == senderName)&&(identical(other.senderPhone, senderPhone) || other.senderPhone == senderPhone)&&(identical(other.receiverName, receiverName) || other.receiverName == receiverName)&&(identical(other.receiverPhone, receiverPhone) || other.receiverPhone == receiverPhone)&&(identical(other.contents, contents) || other.contents == contents)&&(identical(other.weightCategory, weightCategory) || other.weightCategory == weightCategory)&&const DeepCollectionEquality().equals(other._imagePaths, _imagePaths)&&(identical(other.videoPath, videoPath) || other.videoPath == videoPath));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,type,senderName,senderPhone,receiverName,receiverPhone,contents,weightCategory,const DeepCollectionEquality().hash(_imagePaths),videoPath);
+
+@override
+String toString() {
+  return 'ParcelDetails(type: $type, senderName: $senderName, senderPhone: $senderPhone, receiverName: $receiverName, receiverPhone: $receiverPhone, contents: $contents, weightCategory: $weightCategory, imagePaths: $imagePaths, videoPath: $videoPath)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$ParcelDetailsCopyWith<$Res> implements $ParcelDetailsCopyWith<$Res> {
+  factory _$ParcelDetailsCopyWith(_ParcelDetails value, $Res Function(_ParcelDetails) _then) = __$ParcelDetailsCopyWithImpl;
+@override @useResult
+$Res call({
+ String type, String senderName, String senderPhone, String receiverName, String receiverPhone, String contents, String weightCategory, List<String>? imagePaths, String? videoPath
+});
+
+
+
+
+}
+/// @nodoc
+class __$ParcelDetailsCopyWithImpl<$Res>
+    implements _$ParcelDetailsCopyWith<$Res> {
+  __$ParcelDetailsCopyWithImpl(this._self, this._then);
+
+  final _ParcelDetails _self;
+  final $Res Function(_ParcelDetails) _then;
+
+/// Create a copy of ParcelDetails
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? senderName = null,Object? senderPhone = null,Object? receiverName = null,Object? receiverPhone = null,Object? contents = null,Object? weightCategory = null,Object? imagePaths = freezed,Object? videoPath = freezed,}) {
+  return _then(_ParcelDetails(
+type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as String,senderName: null == senderName ? _self.senderName : senderName // ignore: cast_nullable_to_non_nullable
+as String,senderPhone: null == senderPhone ? _self.senderPhone : senderPhone // ignore: cast_nullable_to_non_nullable
+as String,receiverName: null == receiverName ? _self.receiverName : receiverName // ignore: cast_nullable_to_non_nullable
+as String,receiverPhone: null == receiverPhone ? _self.receiverPhone : receiverPhone // ignore: cast_nullable_to_non_nullable
+as String,contents: null == contents ? _self.contents : contents // ignore: cast_nullable_to_non_nullable
+as String,weightCategory: null == weightCategory ? _self.weightCategory : weightCategory // ignore: cast_nullable_to_non_nullable
+as String,imagePaths: freezed == imagePaths ? _self._imagePaths : imagePaths // ignore: cast_nullable_to_non_nullable
+as List<String>?,videoPath: freezed == videoPath ? _self.videoPath : videoPath // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$Ride {
 
- String get id; String get userId; String get status; AppLocation get pickup; AppLocation get destination; double get distance; int get duration; String get rideType; FareEstimate get fareEstimate; String get paymentMethod; String? get scheduledAt; Driver? get driver; int? get eta; String? get otp; String get createdAt; String get updatedAt;
+ String get id; String get userId; String get status;// searching, accepted, arrived, trip_started, completed, cancelled
+ AppLocation get pickup; AppLocation get destination; double get distance; int get duration; String get rideType; FareEstimate get fareEstimate; String get paymentMethod; String? get scheduledAt; Driver? get driver; int? get eta;// driver ETA
+ String? get otp;// Ride OTP
+ double? get tipAmount;// Tip amount
+ ParcelDetails? get parcelDetails;// Parcel specific details
+ String get createdAt; String get updatedAt;
 /// Create a copy of Ride
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -318,16 +620,16 @@ $RideCopyWith<Ride> get copyWith => _$RideCopyWithImpl<Ride>(this as Ride, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ride&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.status, status) || other.status == status)&&(identical(other.pickup, pickup) || other.pickup == pickup)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.rideType, rideType) || other.rideType == rideType)&&(identical(other.fareEstimate, fareEstimate) || other.fareEstimate == fareEstimate)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.scheduledAt, scheduledAt) || other.scheduledAt == scheduledAt)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.otp, otp) || other.otp == otp)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Ride&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.status, status) || other.status == status)&&(identical(other.pickup, pickup) || other.pickup == pickup)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.rideType, rideType) || other.rideType == rideType)&&(identical(other.fareEstimate, fareEstimate) || other.fareEstimate == fareEstimate)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.scheduledAt, scheduledAt) || other.scheduledAt == scheduledAt)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.otp, otp) || other.otp == otp)&&(identical(other.tipAmount, tipAmount) || other.tipAmount == tipAmount)&&(identical(other.parcelDetails, parcelDetails) || other.parcelDetails == parcelDetails)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,status,pickup,destination,distance,duration,rideType,fareEstimate,paymentMethod,scheduledAt,driver,eta,otp,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,status,pickup,destination,distance,duration,rideType,fareEstimate,paymentMethod,scheduledAt,driver,eta,otp,tipAmount,parcelDetails,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Ride(id: $id, userId: $userId, status: $status, pickup: $pickup, destination: $destination, distance: $distance, duration: $duration, rideType: $rideType, fareEstimate: $fareEstimate, paymentMethod: $paymentMethod, scheduledAt: $scheduledAt, driver: $driver, eta: $eta, otp: $otp, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Ride(id: $id, userId: $userId, status: $status, pickup: $pickup, destination: $destination, distance: $distance, duration: $duration, rideType: $rideType, fareEstimate: $fareEstimate, paymentMethod: $paymentMethod, scheduledAt: $scheduledAt, driver: $driver, eta: $eta, otp: $otp, tipAmount: $tipAmount, parcelDetails: $parcelDetails, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -338,11 +640,11 @@ abstract mixin class $RideCopyWith<$Res>  {
   factory $RideCopyWith(Ride value, $Res Function(Ride) _then) = _$RideCopyWithImpl;
 @useResult
 $Res call({
- String id, String userId, String status, AppLocation pickup, AppLocation destination, double distance, int duration, String rideType, FareEstimate fareEstimate, String paymentMethod, String? scheduledAt, Driver? driver, int? eta, String? otp, String createdAt, String updatedAt
+ String id, String userId, String status, AppLocation pickup, AppLocation destination, double distance, int duration, String rideType, FareEstimate fareEstimate, String paymentMethod, String? scheduledAt, Driver? driver, int? eta, String? otp, double? tipAmount, ParcelDetails? parcelDetails, String createdAt, String updatedAt
 });
 
 
-$AppLocationCopyWith<$Res> get pickup;$AppLocationCopyWith<$Res> get destination;$FareEstimateCopyWith<$Res> get fareEstimate;$DriverCopyWith<$Res>? get driver;
+$AppLocationCopyWith<$Res> get pickup;$AppLocationCopyWith<$Res> get destination;$FareEstimateCopyWith<$Res> get fareEstimate;$DriverCopyWith<$Res>? get driver;$ParcelDetailsCopyWith<$Res>? get parcelDetails;
 
 }
 /// @nodoc
@@ -355,7 +657,7 @@ class _$RideCopyWithImpl<$Res>
 
 /// Create a copy of Ride
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? status = null,Object? pickup = null,Object? destination = null,Object? distance = null,Object? duration = null,Object? rideType = null,Object? fareEstimate = null,Object? paymentMethod = null,Object? scheduledAt = freezed,Object? driver = freezed,Object? eta = freezed,Object? otp = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? status = null,Object? pickup = null,Object? destination = null,Object? distance = null,Object? duration = null,Object? rideType = null,Object? fareEstimate = null,Object? paymentMethod = null,Object? scheduledAt = freezed,Object? driver = freezed,Object? eta = freezed,Object? otp = freezed,Object? tipAmount = freezed,Object? parcelDetails = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -371,7 +673,9 @@ as String,scheduledAt: freezed == scheduledAt ? _self.scheduledAt : scheduledAt 
 as String?,driver: freezed == driver ? _self.driver : driver // ignore: cast_nullable_to_non_nullable
 as Driver?,eta: freezed == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as int?,otp: freezed == otp ? _self.otp : otp // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,tipAmount: freezed == tipAmount ? _self.tipAmount : tipAmount // ignore: cast_nullable_to_non_nullable
+as double?,parcelDetails: freezed == parcelDetails ? _self.parcelDetails : parcelDetails // ignore: cast_nullable_to_non_nullable
+as ParcelDetails?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -414,6 +718,18 @@ $DriverCopyWith<$Res>? get driver {
 
   return $DriverCopyWith<$Res>(_self.driver!, (value) {
     return _then(_self.copyWith(driver: value));
+  });
+}/// Create a copy of Ride
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ParcelDetailsCopyWith<$Res>? get parcelDetails {
+    if (_self.parcelDetails == null) {
+    return null;
+  }
+
+  return $ParcelDetailsCopyWith<$Res>(_self.parcelDetails!, (value) {
+    return _then(_self.copyWith(parcelDetails: value));
   });
 }
 }
@@ -497,10 +813,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  String createdAt,  String updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  double? tipAmount,  ParcelDetails? parcelDetails,  String createdAt,  String updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Ride() when $default != null:
-return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.tipAmount,_that.parcelDetails,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -518,10 +834,10 @@ return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destinatio
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  String createdAt,  String updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  double? tipAmount,  ParcelDetails? parcelDetails,  String createdAt,  String updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Ride():
-return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.tipAmount,_that.parcelDetails,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -538,10 +854,10 @@ return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destinatio
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  String createdAt,  String updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String userId,  String status,  AppLocation pickup,  AppLocation destination,  double distance,  int duration,  String rideType,  FareEstimate fareEstimate,  String paymentMethod,  String? scheduledAt,  Driver? driver,  int? eta,  String? otp,  double? tipAmount,  ParcelDetails? parcelDetails,  String createdAt,  String updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Ride() when $default != null:
-return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destination,_that.distance,_that.duration,_that.rideType,_that.fareEstimate,_that.paymentMethod,_that.scheduledAt,_that.driver,_that.eta,_that.otp,_that.tipAmount,_that.parcelDetails,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -553,12 +869,13 @@ return $default(_that.id,_that.userId,_that.status,_that.pickup,_that.destinatio
 @JsonSerializable()
 
 class _Ride implements Ride {
-  const _Ride({required this.id, required this.userId, required this.status, required this.pickup, required this.destination, required this.distance, required this.duration, required this.rideType, required this.fareEstimate, required this.paymentMethod, this.scheduledAt, this.driver, this.eta, this.otp, required this.createdAt, required this.updatedAt});
+  const _Ride({required this.id, required this.userId, required this.status, required this.pickup, required this.destination, required this.distance, required this.duration, required this.rideType, required this.fareEstimate, required this.paymentMethod, this.scheduledAt, this.driver, this.eta, this.otp, this.tipAmount, this.parcelDetails, required this.createdAt, required this.updatedAt});
   factory _Ride.fromJson(Map<String, dynamic> json) => _$RideFromJson(json);
 
 @override final  String id;
 @override final  String userId;
 @override final  String status;
+// searching, accepted, arrived, trip_started, completed, cancelled
 @override final  AppLocation pickup;
 @override final  AppLocation destination;
 @override final  double distance;
@@ -569,7 +886,13 @@ class _Ride implements Ride {
 @override final  String? scheduledAt;
 @override final  Driver? driver;
 @override final  int? eta;
+// driver ETA
 @override final  String? otp;
+// Ride OTP
+@override final  double? tipAmount;
+// Tip amount
+@override final  ParcelDetails? parcelDetails;
+// Parcel specific details
 @override final  String createdAt;
 @override final  String updatedAt;
 
@@ -586,16 +909,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ride&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.status, status) || other.status == status)&&(identical(other.pickup, pickup) || other.pickup == pickup)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.rideType, rideType) || other.rideType == rideType)&&(identical(other.fareEstimate, fareEstimate) || other.fareEstimate == fareEstimate)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.scheduledAt, scheduledAt) || other.scheduledAt == scheduledAt)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.otp, otp) || other.otp == otp)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ride&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.status, status) || other.status == status)&&(identical(other.pickup, pickup) || other.pickup == pickup)&&(identical(other.destination, destination) || other.destination == destination)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.rideType, rideType) || other.rideType == rideType)&&(identical(other.fareEstimate, fareEstimate) || other.fareEstimate == fareEstimate)&&(identical(other.paymentMethod, paymentMethod) || other.paymentMethod == paymentMethod)&&(identical(other.scheduledAt, scheduledAt) || other.scheduledAt == scheduledAt)&&(identical(other.driver, driver) || other.driver == driver)&&(identical(other.eta, eta) || other.eta == eta)&&(identical(other.otp, otp) || other.otp == otp)&&(identical(other.tipAmount, tipAmount) || other.tipAmount == tipAmount)&&(identical(other.parcelDetails, parcelDetails) || other.parcelDetails == parcelDetails)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,status,pickup,destination,distance,duration,rideType,fareEstimate,paymentMethod,scheduledAt,driver,eta,otp,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,status,pickup,destination,distance,duration,rideType,fareEstimate,paymentMethod,scheduledAt,driver,eta,otp,tipAmount,parcelDetails,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Ride(id: $id, userId: $userId, status: $status, pickup: $pickup, destination: $destination, distance: $distance, duration: $duration, rideType: $rideType, fareEstimate: $fareEstimate, paymentMethod: $paymentMethod, scheduledAt: $scheduledAt, driver: $driver, eta: $eta, otp: $otp, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Ride(id: $id, userId: $userId, status: $status, pickup: $pickup, destination: $destination, distance: $distance, duration: $duration, rideType: $rideType, fareEstimate: $fareEstimate, paymentMethod: $paymentMethod, scheduledAt: $scheduledAt, driver: $driver, eta: $eta, otp: $otp, tipAmount: $tipAmount, parcelDetails: $parcelDetails, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -606,11 +929,11 @@ abstract mixin class _$RideCopyWith<$Res> implements $RideCopyWith<$Res> {
   factory _$RideCopyWith(_Ride value, $Res Function(_Ride) _then) = __$RideCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String userId, String status, AppLocation pickup, AppLocation destination, double distance, int duration, String rideType, FareEstimate fareEstimate, String paymentMethod, String? scheduledAt, Driver? driver, int? eta, String? otp, String createdAt, String updatedAt
+ String id, String userId, String status, AppLocation pickup, AppLocation destination, double distance, int duration, String rideType, FareEstimate fareEstimate, String paymentMethod, String? scheduledAt, Driver? driver, int? eta, String? otp, double? tipAmount, ParcelDetails? parcelDetails, String createdAt, String updatedAt
 });
 
 
-@override $AppLocationCopyWith<$Res> get pickup;@override $AppLocationCopyWith<$Res> get destination;@override $FareEstimateCopyWith<$Res> get fareEstimate;@override $DriverCopyWith<$Res>? get driver;
+@override $AppLocationCopyWith<$Res> get pickup;@override $AppLocationCopyWith<$Res> get destination;@override $FareEstimateCopyWith<$Res> get fareEstimate;@override $DriverCopyWith<$Res>? get driver;@override $ParcelDetailsCopyWith<$Res>? get parcelDetails;
 
 }
 /// @nodoc
@@ -623,7 +946,7 @@ class __$RideCopyWithImpl<$Res>
 
 /// Create a copy of Ride
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? status = null,Object? pickup = null,Object? destination = null,Object? distance = null,Object? duration = null,Object? rideType = null,Object? fareEstimate = null,Object? paymentMethod = null,Object? scheduledAt = freezed,Object? driver = freezed,Object? eta = freezed,Object? otp = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? status = null,Object? pickup = null,Object? destination = null,Object? distance = null,Object? duration = null,Object? rideType = null,Object? fareEstimate = null,Object? paymentMethod = null,Object? scheduledAt = freezed,Object? driver = freezed,Object? eta = freezed,Object? otp = freezed,Object? tipAmount = freezed,Object? parcelDetails = freezed,Object? createdAt = null,Object? updatedAt = null,}) {
   return _then(_Ride(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -639,7 +962,9 @@ as String,scheduledAt: freezed == scheduledAt ? _self.scheduledAt : scheduledAt 
 as String?,driver: freezed == driver ? _self.driver : driver // ignore: cast_nullable_to_non_nullable
 as Driver?,eta: freezed == eta ? _self.eta : eta // ignore: cast_nullable_to_non_nullable
 as int?,otp: freezed == otp ? _self.otp : otp // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,tipAmount: freezed == tipAmount ? _self.tipAmount : tipAmount // ignore: cast_nullable_to_non_nullable
+as double?,parcelDetails: freezed == parcelDetails ? _self.parcelDetails : parcelDetails // ignore: cast_nullable_to_non_nullable
+as ParcelDetails?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: null == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -683,6 +1008,18 @@ $DriverCopyWith<$Res>? get driver {
 
   return $DriverCopyWith<$Res>(_self.driver!, (value) {
     return _then(_self.copyWith(driver: value));
+  });
+}/// Create a copy of Ride
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ParcelDetailsCopyWith<$Res>? get parcelDetails {
+    if (_self.parcelDetails == null) {
+    return null;
+  }
+
+  return $ParcelDetailsCopyWith<$Res>(_self.parcelDetails!, (value) {
+    return _then(_self.copyWith(parcelDetails: value));
   });
 }
 }

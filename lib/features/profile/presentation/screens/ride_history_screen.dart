@@ -131,7 +131,19 @@ class _ExpansionRideCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(displayDate, style: AppTextStyles.bodyMedium),
+                  Row(
+                    children: [
+                      Text(displayDate, style: AppTextStyles.bodyMedium),
+                      if (ride.parcelDetails != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                          child: Text('Parcel', style: AppTextStyles.caption.copyWith(color: Colors.orange[800], fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ],
+                  ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -172,20 +184,25 @@ class _ExpansionRideCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text('₹${ride.fareEstimate.total.toStringAsFixed(0)}', style: AppTextStyles.h3),
+                  Text('₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}', style: AppTextStyles.h3),
                 ],
               ),
             ],
           ),
           children: [
-            const Divider(color: AppColors.border),
+            Divider(color: AppColors.border),
             const SizedBox(height: 12),
             _buildDetailRow('Trip ID', ride.id),
-            _buildDetailRow('Driver Name', ride.driver?.name ?? 'N/A'),
+            _buildDetailRow(ride.parcelDetails != null ? 'Delivery Partner' : 'Driver Name', ride.driver?.name ?? 'N/A'),
             _buildDetailRow('Distance Travelled', '${ride.distance.toStringAsFixed(1)} km'),
-            _buildDetailRow('Amount Paid', '₹${ride.fareEstimate.total.toStringAsFixed(0)}'),
+            _buildDetailRow('Amount Paid', '₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}'),
+            if (ride.parcelDetails != null) ...[
+              _buildDetailRow('Sender', ride.parcelDetails!.senderName),
+              _buildDetailRow('Receiver', ride.parcelDetails!.receiverName),
+              _buildDetailRow('Contents', ride.parcelDetails!.contents),
+            ],
             _buildDetailRow('Payment Type', ride.paymentMethod.toUpperCase()),
-            _buildDetailRow('Tip Offered', '₹0'),
+            _buildDetailRow('Tip Offered', '₹${(ride.tipAmount ?? 0).toStringAsFixed(0)}'),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

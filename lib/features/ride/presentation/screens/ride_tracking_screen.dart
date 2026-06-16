@@ -42,6 +42,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   List<LatLng> _routePoints = [];
   double _simulationProgress = 0.0;
   int _tickCount = 0;
+  bool _isDetailsCollapsed = false;
 
   @override
   void initState() {
@@ -165,11 +166,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('🆘 Emergency SOS'),
-<<<<<<< HEAD
-        content: const Text('This will share your location with emergency services and Alo Safety team.'),
-=======
         content: Text('This will share your location with $targetName and trigger a call.'),
->>>>>>> b5833b801dca2b1180b09a2f64bcd194e288b8e9
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -284,6 +281,21 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
 
     final status = currentRide.status;
     final color = statusColors[status] ?? AppColors.primaryGreen;
+    final isParcel = currentRide.rideType == 'parcel';
+    
+    String getStatusLabel(String s) {
+      if (isParcel) {
+        switch (s) {
+          case 'searching': return 'Finding Delivery Partner...';
+          case 'accepted': return 'Delivery Partner is on the way';
+          case 'arrived': return 'Delivery Partner has arrived!';
+          case 'trip_started': return 'Parcel in transit';
+          case 'completed': return 'Delivery completed';
+          case 'cancelled': return 'Delivery cancelled';
+        }
+      }
+      return statusLabels[s] ?? 'Unknown status';
+    }
     
     LatLng target = LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude);
     if (currentRide.driver != null && (status == 'accepted' || status == 'trip_started')) {
@@ -363,7 +375,9 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    // Could pop sheet or shrink it
+                    setState(() {
+                      _isDetailsCollapsed = !_isDetailsCollapsed;
+                    });
                   },
                   child: Container(
                     width: 44,
@@ -373,7 +387,10 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
                     ),
-                    child: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary),
+                    child: Icon(
+                      _isDetailsCollapsed ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -421,41 +438,76 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.bgSurface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -4))],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.bgSurface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -4))],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isDetailsCollapsed = !_isDetailsCollapsed;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(getStatusLabel(status), style: AppTextStyles.bodyMedium.copyWith(color: color, fontWeight: FontWeight.bold)),
+                            ),
+                            Icon(
+                              _isDetailsCollapsed ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              color: color,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-                        const SizedBox(width: 12),
-                        Text(statusLabels[status] ?? 'Unknown status', style: AppTextStyles.bodyMedium.copyWith(color: color, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  if (status == 'searching')
-                    _buildTipSection(),
-                  if (currentRide.driver != null)
-                    DriverCard(
-                      driver: currentRide.driver!,
-                      otp: currentRide.otp ?? '----',
-                      onCall: () => _handleCall(currentRide.driver!.phone),
-                      onMessage: () {},
-                      onShareEta: () => _handleShareEta('${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})'),
-                    ),
-                  SizedBox(height: MediaQuery.of(context).padding.bottom),
-                ],
+                    if (!_isDetailsCollapsed) ...[
+                      if (status == 'searching')
+                        _buildTipSection(),
+                      if (currentRide.driver != null)
+                        DriverCard(
+                          driver: currentRide.driver!,
+                          otp: currentRide.otp ?? '----',
+                          onCall: () => _handleCall(currentRide.driver!.phone),
+                          onMessage: () {},
+                          onShareEta: () => _handleShareEta('${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})'),
+                        ),
+                      if (currentRide.parcelDetails != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          color: AppColors.bgSurface,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Divider(color: AppColors.border),
+                              const SizedBox(height: 8),
+                              Text('Parcel Info: ${currentRide.parcelDetails!.contents} (${currentRide.parcelDetails!.weightCategory == 'upto_5' ? 'Up to 5 kg' : '5 - 15 kg'})', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 4),
+                              Text('Sender: ${currentRide.parcelDetails!.senderName} • ${currentRide.parcelDetails!.senderPhone}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                              Text('Receiver: ${currentRide.parcelDetails!.receiverName} • ${currentRide.parcelDetails!.receiverPhone}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                            ],
+                          ),
+                        ),
+                    ],
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
+                  ],
+                ),
               ),
             ),
           ),

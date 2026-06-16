@@ -10,6 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../providers/location_provider.dart';
 import '../providers/map_repository_provider.dart';
 import '../providers/ghost_cars_provider.dart';
+import '../../../ride/presentation/providers/ride_provider.dart';
 
 class HomeMapScreen extends ConsumerStatefulWidget {
   const HomeMapScreen({super.key});
@@ -173,6 +174,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
+                      ref.read(selectedRideTypeProvider.notifier).update(null);
                       context.push('/destination-search', extra: true);
                     },
                     child: Container(
@@ -278,6 +280,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         if (currentPickup == null && currentLocationAsync.value != null) {
                           ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                         }
+                        ref.read(selectedRideTypeProvider.notifier).update(null);
                         context.push('/destination-search', extra: false);
                       },
                       child: Container(
@@ -308,22 +311,28 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildCategory('assets/image 30.png', Icons.electric_rickshaw, 'Auto', onTap: () {
+                        _buildCategory('assets/image 24.png', Icons.directions_car, 'Daily', onTap: () {
                           if (currentPickup == null && currentLocationAsync.value != null) {
                             ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                           }
+                          ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                          ref.read(selectedRideTypeProvider.notifier).update(null);
                           context.push('/destination-search', extra: false);
                         }),
-                        _buildCategory('assets/image 28.png', Icons.directions_car, 'SUV', onTap: () {
+                        _buildCategory(null, Icons.key, 'Rentals', onTap: () {
                           if (currentPickup == null && currentLocationAsync.value != null) {
                             ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                           }
+                          ref.read(selectedRideCategoryProvider.notifier).update('rentals');
+                          ref.read(selectedRideTypeProvider.notifier).update(null);
                           context.push('/destination-search', extra: false);
                         }),
-                        _buildCategory('assets/image 23.png', Icons.pedal_bike, 'Bike', onTap: () {
+                        _buildCategory(null, Icons.map_outlined, 'Outstation', onTap: () {
                           if (currentPickup == null && currentLocationAsync.value != null) {
                             ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                           }
+                          ref.read(selectedRideCategoryProvider.notifier).update('outstation');
+                          ref.read(selectedRideTypeProvider.notifier).update(null);
                           context.push('/destination-search', extra: false);
                         }),
                         _buildCategory(null, Icons.inventory_2_outlined, 'Parcel', onTap: () {

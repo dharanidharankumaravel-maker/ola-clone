@@ -24,6 +24,23 @@ abstract class Driver with _$Driver {
 }
 
 @freezed
+abstract class ParcelDetails with _$ParcelDetails {
+  const factory ParcelDetails({
+    required String type, // 'send' or 'receive'
+    required String senderName,
+    required String senderPhone,
+    required String receiverName,
+    required String receiverPhone,
+    required String contents,
+    required String weightCategory,
+    List<String>? imagePaths,
+    String? videoPath,
+  }) = _ParcelDetails;
+
+  factory ParcelDetails.fromJson(Map<String, dynamic> json) => _$ParcelDetailsFromJson(json);
+}
+
+@freezed
 abstract class Ride with _$Ride {
   const factory Ride({
     required String id,
@@ -40,6 +57,8 @@ abstract class Ride with _$Ride {
     Driver? driver,
     int? eta, // driver ETA
     String? otp, // Ride OTP
+    double? tipAmount, // Tip amount
+    ParcelDetails? parcelDetails, // Parcel specific details
     required String createdAt,
     required String updatedAt,
   }) = _Ride;

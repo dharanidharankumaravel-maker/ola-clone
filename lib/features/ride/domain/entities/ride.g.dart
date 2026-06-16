@@ -32,6 +32,34 @@ Map<String, dynamic> _$DriverToJson(_Driver instance) => <String, dynamic>{
   'heading': instance.heading,
 };
 
+_ParcelDetails _$ParcelDetailsFromJson(Map<String, dynamic> json) =>
+    _ParcelDetails(
+      type: json['type'] as String,
+      senderName: json['senderName'] as String,
+      senderPhone: json['senderPhone'] as String,
+      receiverName: json['receiverName'] as String,
+      receiverPhone: json['receiverPhone'] as String,
+      contents: json['contents'] as String,
+      weightCategory: json['weightCategory'] as String,
+      imagePaths: (json['imagePaths'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      videoPath: json['videoPath'] as String?,
+    );
+
+Map<String, dynamic> _$ParcelDetailsToJson(_ParcelDetails instance) =>
+    <String, dynamic>{
+      'type': instance.type,
+      'senderName': instance.senderName,
+      'senderPhone': instance.senderPhone,
+      'receiverName': instance.receiverName,
+      'receiverPhone': instance.receiverPhone,
+      'contents': instance.contents,
+      'weightCategory': instance.weightCategory,
+      'imagePaths': instance.imagePaths,
+      'videoPath': instance.videoPath,
+    };
+
 _Ride _$RideFromJson(Map<String, dynamic> json) => _Ride(
   id: json['id'] as String,
   userId: json['userId'] as String,
@@ -53,6 +81,10 @@ _Ride _$RideFromJson(Map<String, dynamic> json) => _Ride(
       : Driver.fromJson(json['driver'] as Map<String, dynamic>),
   eta: (json['eta'] as num?)?.toInt(),
   otp: json['otp'] as String?,
+  tipAmount: (json['tipAmount'] as num?)?.toDouble(),
+  parcelDetails: json['parcelDetails'] == null
+      ? null
+      : ParcelDetails.fromJson(json['parcelDetails'] as Map<String, dynamic>),
   createdAt: json['createdAt'] as String,
   updatedAt: json['updatedAt'] as String,
 );
@@ -72,6 +104,8 @@ Map<String, dynamic> _$RideToJson(_Ride instance) => <String, dynamic>{
   'driver': instance.driver,
   'eta': instance.eta,
   'otp': instance.otp,
+  'tipAmount': instance.tipAmount,
+  'parcelDetails': instance.parcelDetails,
   'createdAt': instance.createdAt,
   'updatedAt': instance.updatedAt,
 };

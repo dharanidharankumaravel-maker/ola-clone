@@ -17,6 +17,7 @@ class DriverSearchScreen extends ConsumerStatefulWidget {
 
 class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
+  double _selectedTip = 0.0;
 
   @override
   void initState() {
@@ -26,14 +27,14 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    // Mock: Finding driver after 1.5 seconds
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    // Mock: Finding driver after 10 seconds (allows time for tipping)
+    Future.delayed(const Duration(seconds: 10), () {
       if (!mounted) return;
       
       final locationState = ref.read(locationProvider);
       final rideType = ref.read(selectedRideTypeProvider);
       final options = ref.read(rideOptionsProvider);
-      final useOlaMoney = ref.read(useOlaMoneyProvider);
+      final paymentMethod = ref.read(paymentMethodProvider);
 
       final pickup = locationState.pickup ?? const AppLocation(
         latitude: 13.0827,
@@ -52,7 +53,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
           rating: 4.8,
           phone: '+91 98765 43210',
           vehicleNumber: 'TN 58 AB 1234',
-          vehicleModel: 'Maruti Dzire',
+          vehicleModel: rideType == 'parcel' ? 'Hero Splendor' : 'Maruti Dzire',
           image: '',
           latitude: pickup.latitude + 0.005,
           longitude: pickup.longitude + 0.005,
@@ -69,10 +70,12 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
           duration: selectedOption.fareEstimate.duration,
           rideType: selectedOption.type,
           fareEstimate: selectedOption.fareEstimate,
-          paymentMethod: useOlaMoney ? 'ola_money' : 'cash',
+          paymentMethod: paymentMethod,
           driver: mockDriver,
           eta: 5,
           otp: '1234',
+          tipAmount: _selectedTip,
+          parcelDetails: rideType == 'parcel' ? ref.read(parcelDetailsProvider) : null,
           createdAt: DateTime.now().toIso8601String(),
           updatedAt: DateTime.now().toIso8601String(),
         );
@@ -179,13 +182,28 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                   ],
                 ),
               ),
+              const SizedBox(height: 24),
+              TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 1.0, end: 0.0),
+                duration: const Duration(seconds: 10),
+                builder: (context, value, _) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: value,
+                      color: AppColors.primaryGreen,
+                      backgroundColor: AppColors.bgCard,
+                      minHeight: 8,
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 48),
-
-              Text('Finding your driver', style: AppTextStyles.h2.copyWith(color: Colors.white)),
+              Text(ref.read(selectedRideTypeProvider) == 'parcel' ? 'Looking for Delivery Partner...' : 'Looking for drivers nearby...', style: AppTextStyles.h2.copyWith(color: AppColors.textPrimary)),
               const SizedBox(height: 8),
               Text('Matching you with the best driver nearby...', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.center),
               
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Trip Summary Card
               Container(
@@ -241,6 +259,35 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
 
               const SizedBox(height: 32),
 
+              // Tip Section
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.bgCard,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primaryGreen.withOpacity(0.5)),
+                ),
+                child: Column(
+                  children: [
+                    Text('Want a driver faster?', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    const SizedBox(height: 4),
+                    Text('Adding a tip increases the chances of faster driver assignment.', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary), textAlign: TextAlign.center),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildTipButton('₹10', 10.0),
+                        _buildTipButton('₹20', 20.0),
+                        _buildTipButton('₹50', 50.0),
+                        _buildTipButton('None', 0.0),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               Text('Free cancellation within 5 minutes of booking', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
               const SizedBox(height: 12),
               
@@ -267,6 +314,31 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTipButton(String label, double amount) {
+    final isSelected = _selectedTip == amount;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTip = amount;
+        });
+        if (amount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tip of ₹${amount.toInt()} will be added to your ride!'), duration: const Duration(seconds: 1)),
+          );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryGreen : AppColors.bgSurface,
+          border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: isSelected ? Colors.white : AppColors.textPrimary)),
       ),
     );
   }

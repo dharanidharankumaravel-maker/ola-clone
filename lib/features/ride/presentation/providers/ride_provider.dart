@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/ride_option.dart';
 import '../../domain/entities/ride.dart';
 
+
 class RideOptionsNotifier extends Notifier<List<RideOption>> {
   @override
   List<RideOption> build() => [];
@@ -15,6 +16,27 @@ class SelectedRideTypeNotifier extends Notifier<String?> {
   void update(String? value) => state = value;
 }
 final selectedRideTypeProvider = NotifierProvider<SelectedRideTypeNotifier, String?>(() => SelectedRideTypeNotifier());
+
+class SelectedRideCategoryNotifier extends Notifier<String> {
+  @override
+  String build() => 'daily';
+  void update(String value) => state = value;
+}
+final selectedRideCategoryProvider = NotifierProvider<SelectedRideCategoryNotifier, String>(() => SelectedRideCategoryNotifier());
+
+class ParcelFlowTypeNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void update(String? value) => state = value;
+}
+final parcelFlowTypeProvider = NotifierProvider<ParcelFlowTypeNotifier, String?>(() => ParcelFlowTypeNotifier());
+
+class ParcelDetailsNotifier extends Notifier<ParcelDetails?> {
+  @override
+  ParcelDetails? build() => null;
+  void update(ParcelDetails? value) => state = value;
+}
+final parcelDetailsProvider = NotifierProvider<ParcelDetailsNotifier, ParcelDetails?>(() => ParcelDetailsNotifier());
 
 class IsEstimatingNotifier extends Notifier<bool> {
   @override
@@ -104,3 +126,10 @@ class ScheduledRidesNotifier extends Notifier<List<Ride>> {
 final scheduledRidesProvider = NotifierProvider<ScheduledRidesNotifier, List<Ride>>(() {
   return ScheduledRidesNotifier();
 });
+
+class PaymentMethodNotifier extends Notifier<String> {
+  @override
+  String build() => 'cash';
+  void update(String value) => state = value;
+}
+final paymentMethodProvider = NotifierProvider<PaymentMethodNotifier, String>(() => PaymentMethodNotifier());

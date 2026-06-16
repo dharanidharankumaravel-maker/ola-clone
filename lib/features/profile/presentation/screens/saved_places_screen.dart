@@ -59,22 +59,20 @@ class SavedPlacesScreen extends ConsumerWidget {
           )),
           
           GestureDetector(
-            onTap: () {
-              ref.read(savedPlacesProvider.notifier).addPlace(
-                SavedPlace(
-                  title: 'Gym',
-                  subtitle: 'Fitness Center, Velachery',
-                  location: const AppLocation(
-                    latitude: 12.9816,
-                    longitude: 80.2236,
-                    shortAddress: 'Gym',
-                    formattedAddress: 'Fitness Center, Velachery',
+            onTap: () async {
+              final result = await context.push<AppLocation>('/map-picker');
+              if (result != null) {
+                ref.read(savedPlacesProvider.notifier).addPlace(
+                  SavedPlace(
+                    title: result.shortAddress ?? 'Saved Place',
+                    subtitle: result.formattedAddress,
+                    location: result,
                   ),
-                ),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: const Text('Added new mock place dynamically!'), backgroundColor: AppColors.primaryGreen),
-              );
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: const Text('New place saved!'), backgroundColor: AppColors.primaryGreen),
+                );
+              }
             },
             child: Row(
               children: [

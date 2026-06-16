@@ -7,6 +7,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/profile/presentation/screens/profile_setup_screen.dart';
 import '../../features/map/presentation/screens/home_map_screen.dart';
 import '../../features/map/presentation/screens/destination_search_screen.dart';
+import '../../features/map/presentation/screens/map_picker_screen.dart';
 import '../../features/ride/presentation/screens/ride_selection_screen.dart';
 import '../../features/ride/presentation/screens/schedule_ride_screen.dart';
 import '../../features/ride/presentation/screens/driver_search_screen.dart';
@@ -15,6 +16,7 @@ import '../../features/ride/presentation/screens/payment_method_screen.dart';
 import '../../features/profile/presentation/screens/wallet_screen.dart';
 import '../../features/ride/presentation/screens/parcel_screen.dart';
 import '../../features/ride/presentation/screens/parcel_details_screen.dart';
+import '../../features/ride/presentation/screens/parcel_location_search_screen.dart';
 import '../../features/ride/presentation/screens/driver_feedback_screen.dart';
 
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
@@ -59,8 +61,25 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/destination-search',
       builder: (context, state) {
-        final isPickup = state.extra as bool? ?? false;
-        return DestinationSearchScreen(isPickup: isPickup);
+        final extra = state.extra;
+        bool isPickup = false;
+        String? returnRoute;
+        bool returnLocation = false;
+        if (extra is bool) {
+          isPickup = extra;
+        } else if (extra is Map) {
+          isPickup = extra['isPickup'] ?? false;
+          returnRoute = extra['returnRoute'] as String?;
+          returnLocation = extra['returnLocation'] ?? false;
+        }
+        return DestinationSearchScreen(isPickup: isPickup, returnRoute: returnRoute, returnLocation: returnLocation);
+      },
+    ),
+    GoRoute(
+      path: '/map-picker',
+      builder: (context, state) {
+        final isPickup = state.extra as bool? ?? true;
+        return MapPickerScreen(isPickup: isPickup);
       },
     ),
     GoRoute(
@@ -101,7 +120,17 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/parcel-details',
-      builder: (context, state) => const ParcelDetailsScreen(),
+      builder: (context, state) {
+        final category = state.extra as String? ?? 'Others';
+        return ParcelDetailsScreen(category: category);
+      },
+    ),
+    GoRoute(
+      path: '/parcel-location-search',
+      builder: (context, state) {
+        final isPickup = state.extra as bool? ?? true;
+        return ParcelLocationSearchScreen(isPickup: isPickup);
+      },
     ),
     GoRoute(
       path: '/driver-search',

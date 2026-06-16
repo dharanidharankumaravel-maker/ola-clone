@@ -11,7 +11,9 @@ import 'dart:async';
 
 class DestinationSearchScreen extends ConsumerStatefulWidget {
   final bool isPickup;
-  const DestinationSearchScreen({super.key, this.isPickup = false});
+  final String? returnRoute;
+  final bool returnLocation;
+  const DestinationSearchScreen({super.key, this.isPickup = false, this.returnRoute, this.returnLocation = false});
 
   @override
   ConsumerState<DestinationSearchScreen> createState() => _DestinationSearchScreenState();
@@ -125,7 +127,17 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
           return;
         }
       }
-      context.replace('/ride-selection');
+      
+      if (widget.returnLocation) {
+        context.pop(place);
+        return;
+      }
+      
+      if (widget.returnRoute != null) {
+        context.pop();
+      } else {
+        context.replace('/ride-selection');
+      }
     }
   }
 

@@ -6,7 +6,7 @@
     <application
         android:label="Ola-Customer App"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyCACgjzcfYoFSGn1dSj58mxWM3mjVvw3JM"/>
         <activity
             android:name=".MainActivity"

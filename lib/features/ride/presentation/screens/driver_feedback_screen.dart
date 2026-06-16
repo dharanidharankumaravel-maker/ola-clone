@@ -17,26 +17,37 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
   int _rating = 0;
   final Set<String> _selectedChips = {};
   final TextEditingController _commentController = TextEditingController();
-  double _tipAmount = 0;
   bool _showFareBreakdown = false;
 
-  final List<String> _goodFeedback = [
-    'Excellent Service',
-    'Clean Car',
-    'Polite Behavior',
-    'Safe Driving',
-    'Great Navigation'
+  final List<String> _rideGoodFeedback = [
+    'Polite & Professional Driver',
+    'Safe & Smooth Driving',
+    'Clean Vehicle',
+    'Excellent Overall Ride',
   ];
 
-  final List<String> _badFeedback = [
-    'Late Arrival',
-    'Unclean Car',
-    'Rude Behavior',
-    'Rash Driving',
-    'Wrong Route'
+  final List<String> _rideBadFeedback = [
+    'Rude/Unprofessional Driver',
+    'Rash/Unsafe Driving',
+    'Unclean Vehicle',
+    'Unsatisfactory Overall Ride',
   ];
 
-  final List<double> _tipOptions = [10.0, 20.0, 50.0];
+  final List<String> _parcelGoodFeedback = [
+    'Quick & Timely Delivery',
+    'Safe Parcel Handling',
+    'Smooth Pickup & Drop-off',
+    'Good Communication',
+    'Excellent Overall Delivery',
+  ];
+
+  final List<String> _parcelBadFeedback = [
+    'Delayed Delivery',
+    'Careless Parcel Handling',
+    'Difficult Pickup/Drop-off',
+    'Poor Communication',
+    'Unsatisfactory Overall Delivery',
+  ];
 
   @override
   void dispose() {
@@ -49,9 +60,12 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
     final promoDiscount = ref.read(promoDiscountProvider);
     
     if (currentRide != null) {
+      final double taxes = currentRide.fareEstimate.total * 0.05;
+      final double baseTotal = currentRide.fareEstimate.total + taxes - promoDiscount;
+      final double finalFare = baseTotal + (currentRide.tipAmount ?? 0.0);
+
       // Deduct from wallet if Ola Money was used
       if (currentRide.paymentMethod == 'ola_money') {
-        final double finalFare = (currentRide.fareEstimate.total - promoDiscount) + _tipAmount;
         final user = ref.read(authProvider).value;
         if (user != null) {
           ref.read(authProvider.notifier).updateUser(
@@ -70,7 +84,11 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
       }
 
       // Save ride to history before clearing
-      ref.read(rideHistoryProvider.notifier).addRide(currentRide);
+      final updatedFareEstimate = currentRide.fareEstimate.copyWith(total: baseTotal);
+      ref.read(rideHistoryProvider.notifier).addRide(currentRide.copyWith(
+        status: 'completed',
+        fareEstimate: updatedFareEstimate,
+      ));
       ref.read(currentRideProvider.notifier).clearCurrentRide();
     }
     
@@ -101,9 +119,14 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
       );
     }
 
-    final double baseTotal = currentRide.fareEstimate.total - promoDiscount;
-    final double finalFare = baseTotal + _tipAmount;
-    final chipsToDisplay = _rating > 0 && _rating < 4 ? _badFeedback : _goodFeedback;
+    final double taxes = currentRide.fareEstimate.total * 0.05;
+    final double tip = currentRide.tipAmount ?? 0.0;
+    final double baseTotal = currentRide.fareEstimate.total + taxes - promoDiscount;
+    final double finalFare = baseTotal + tip;
+    final isParcel = currentRide.rideType == 'parcel';
+    final goodFeedback = isParcel ? _parcelGoodFeedback : _rideGoodFeedback;
+    final badFeedback = isParcel ? _parcelBadFeedback : _rideBadFeedback;
+    final chipsToDisplay = _rating > 0 && _rating < 4 ? badFeedback : goodFeedback;
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -115,11 +138,14 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                Text('Trip Completed', style: AppTextStyles.h2.copyWith(color: AppColors.primaryGreen)),
+                 Text(
+                  isParcel ? 'Delivery Completed' : 'Trip Completed',
+                  style: AppTextStyles.h2.copyWith(color: AppColors.primaryGreen),
+                ),
                 const SizedBox(height: 16),
                 
                 // Final Fare
-                Text('₹${finalFare.toStringAsFixed(0)}', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
+                Text('₹${finalFare.toStringAsFixed(0)}', style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                 Text('Paid via ${currentRide.paymentMethod == 'cash' ? 'Cash' : 'Alo Money'}', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
                 
                 const SizedBox(height: 16),
@@ -148,13 +174,16 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                     ),
                     child: Column(
                       children: [
-                        _buildBreakdownRow('Ride Fare', '₹${currentRide.fareEstimate.total.toStringAsFixed(0)}'),
+                        _buildBreakdownRow('Base Fare', '₹${currentRide.fareEstimate.baseFare.toStringAsFixed(0)}'),
+                        _buildBreakdownRow('Distance Charge', '₹${currentRide.fareEstimate.distanceFare.toStringAsFixed(0)}'),
+                        _buildBreakdownRow('Time Charge', '₹${currentRide.fareEstimate.timeFare.toStringAsFixed(0)}'),
+                        _buildBreakdownRow('Taxes & Fees (5%)', '₹${taxes.toStringAsFixed(0)}'),
                         if (promoDiscount > 0)
                           _buildBreakdownRow('Promo Applied', '-₹${promoDiscount.toStringAsFixed(0)}', isDiscount: true),
-                        if (_tipAmount > 0)
-                          _buildBreakdownRow('Tip', '₹${_tipAmount.toStringAsFixed(0)}', isHighlight: true),
+                        if (tip > 0)
+                          _buildBreakdownRow('Tip Amount', '₹${tip.toStringAsFixed(0)}', isHighlight: true),
                         Divider(color: AppColors.border, height: 24),
-                        _buildBreakdownRow('Total Paid', '₹${finalFare.toStringAsFixed(0)}', isTotal: true),
+                        _buildBreakdownRow('Final Payable Amount', '₹${finalFare.toStringAsFixed(0)}', isTotal: true),
                       ],
                     ),
                   ),
@@ -181,9 +210,20 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                         child: Icon(Icons.person, size: 40, color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 16),
-                      Text('How was your ride with ${currentRide.driver!.name}?', style: AppTextStyles.h3.copyWith(color: Colors.white, fontSize: 18), textAlign: TextAlign.center),
+                      Text(
+                        isParcel
+                            ? 'How was your delivery with ${currentRide.driver!.name}?'
+                            : 'How was your ride with ${currentRide.driver!.name}?',
+                        style: AppTextStyles.h3.copyWith(color: AppColors.textPrimary, fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 8),
-                      Text('${currentRide.driver!.vehicleModel} • ${currentRide.driver!.vehicleNumber}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                      Text(
+                        isParcel
+                            ? 'Delivery Partner • ${currentRide.driver!.vehicleModel} • ${currentRide.driver!.vehicleNumber}'
+                            : '${currentRide.driver!.vehicleModel} • ${currentRide.driver!.vehicleNumber}',
+                        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                      ),
                       
                       const SizedBox(height: 24),
                       
@@ -215,41 +255,12 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
 
                 if (_rating > 0) ...[
                   const SizedBox(height: 32),
-                  
-                  // Tipping Section
-                  Text('Add a tip for ${currentRide.driver!.name}', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ..._tipOptions.map((tip) {
-                        final isSelected = _tipAmount == tip;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _tipAmount = isSelected ? 0 : tip;
-                            });
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryGreen : AppColors.bgCard,
-                              borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border),
-                            ),
-                            child: Text('₹${tip.toStringAsFixed(0)}', style: TextStyle(
-                              color: isSelected ? Colors.black : Colors.white,
-                              fontWeight: FontWeight.bold,
-                            )),
-                          ),
-                        );
-                      }),
-                    ],
+                  Text(
+                    _rating < 4
+                        ? (isParcel ? 'What went wrong with the delivery?' : 'What went wrong with the ride?')
+                        : (isParcel ? 'What did you like about the delivery?' : 'What did you like about the ride?'),
+                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
                   ),
-                  
-                  const SizedBox(height: 32),
-                  Text('What did you like?', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white)),
                   const SizedBox(height: 16),
                   
                   // Feedback Chips
@@ -292,7 +303,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                   // Comment Text Field
                   TextField(
                     controller: _commentController,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: AppColors.textPrimary),
                     maxLines: 3,
                     decoration: InputDecoration(
                       hintText: 'Add an optional comment...',
@@ -311,7 +322,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                 
                 // Submit Button
                 ElevatedButton(
-                  onPressed: _rating > 0 ? _handleSubmit : null,
+                  onPressed: _rating > 0 && _selectedChips.isNotEmpty ? _handleSubmit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryGreen,
                     foregroundColor: Colors.black,
@@ -325,15 +336,6 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                   ),
                   child: const Text('Submit Feedback', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
-                
-                if (_rating == 0)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: TextButton(
-                      onPressed: _handleSubmit,
-                      child: Text('Skip for now', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                    ),
-                  )
               ],
             ),
           ),
@@ -343,7 +345,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
   }
 
   Widget _buildBreakdownRow(String label, String value, {bool isDiscount = false, bool isHighlight = false, bool isTotal = false}) {
-    Color color = Colors.white;
+    Color color = AppColors.textPrimary;
     if (isDiscount) color = AppColors.primaryGreen;
     if (isHighlight) color = Colors.amber;
     if (isTotal) color = AppColors.primaryGreen;
@@ -354,7 +356,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.bodyMedium.copyWith(
-            color: isTotal ? Colors.white : AppColors.textSecondary,
+            color: isTotal ? AppColors.textPrimary : AppColors.textSecondary,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
           )),
           Text(value, style: AppTextStyles.bodyMedium.copyWith(
