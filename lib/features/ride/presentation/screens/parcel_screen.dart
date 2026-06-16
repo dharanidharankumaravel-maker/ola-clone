@@ -26,13 +26,13 @@ class _ParcelScreenState extends ConsumerState<ParcelScreen> {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('OLA ', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w900)),
+            Text('ALO ', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w900)),
             Text('PARCEL', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.normal)),
           ],
         ),
@@ -151,8 +151,8 @@ class _ParcelScreenState extends ConsumerState<ParcelScreen> {
                   Container(
                     width: 16,
                     height: 16,
-                    decoration: const BoxDecoration(color: AppColors.textPrimary, shape: BoxShape.circle),
-                    child: const Icon(Icons.check, size: 10, color: AppColors.bgSurface),
+                    decoration: BoxDecoration(color: AppColors.textPrimary, shape: BoxShape.circle),
+                    child: Icon(Icons.check, size: 10, color: AppColors.bgSurface),
                   ),
               ],
             ),
@@ -211,7 +211,7 @@ class _ParcelScreenState extends ConsumerState<ParcelScreen> {
           Container(
             width: 32,
             height: 32,
-            decoration: const BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
             child: Icon(icon, size: 16, color: AppColors.primaryGreen),
           ),
           const SizedBox(width: 12),

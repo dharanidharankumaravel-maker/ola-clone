@@ -121,7 +121,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                             child: Transform.rotate(
                               angle: car.heading * 3.14159 / 180,
                               child: Image.asset('assets/car_top.png', 
-                                errorBuilder: (_,__,___) => const Icon(Icons.directions_car, color: AppColors.textSecondary, size: 24),
+                                errorBuilder: (_,__,___) => Icon(Icons.directions_car, color: AppColors.textSecondary, size: 24),
                               ),
                             ),
                           );
@@ -296,7 +296,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.search, color: AppColors.textPrimary),
+                            Icon(Icons.search, color: AppColors.textPrimary),
                             const SizedBox(width: 12),
                             Text('Enter Destination', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                           ],
@@ -421,7 +421,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
         decoration: BoxDecoration(
           color: AppColors.bgCard,
           borderRadius: showDivider ? null : const BorderRadius.vertical(bottom: Radius.circular(12)),
-          border: showDivider ? const Border(bottom: BorderSide(color: AppColors.border)) : null,
+          border: showDivider ? Border(bottom: BorderSide(color: AppColors.border)) : null,
         ),
         child: Row(
           children: [

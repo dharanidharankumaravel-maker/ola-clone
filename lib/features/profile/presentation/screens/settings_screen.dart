@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -15,17 +16,47 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _locationEnabled = true;
-  bool _darkThemeEnabled = true;
+
+  void _handleLogout(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.bgCard,
+        title: const Text('Log Out', style: AppTextStyles.sectionTitle),
+        content: Text('Are you sure you want to log out?', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Log Out', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await ref.read(authProvider.notifier).logout();
+      if (context.mounted) {
+        context.go('/login');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeModeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+
     return Scaffold(
       backgroundColor: AppColors.bgSurface,
       appBar: AppBar(
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: const Text('Settings', style: AppTextStyles.h3),
@@ -49,14 +80,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _buildSwitchTile(
             title: 'Dark Theme',
             icon: Icons.dark_mode_outlined,
-            value: _darkThemeEnabled,
+            value: isDark,
             onChanged: (val) {
-              if (!val) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Light theme is currently in development!')),
-                );
-              }
-              setState(() => _darkThemeEnabled = true); // Force dark theme
+              ref.read(themeModeProvider.notifier).setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
             },
           ),
           
@@ -65,6 +91,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _buildListTile('Privacy Policy', Icons.lock_outline),
           _buildListTile('Terms of Service', Icons.description_outlined),
           _buildListTile('App Version', Icons.info_outline, trailingText: 'v1.0.0'),
+          _buildListTile(
+            'Log Out',
+            Icons.logout,
+            trailingText: 'Sign out',
+            onTap: () => _handleLogout(context, ref),
+          ),
           
           const SizedBox(height: 32),
           Center(
@@ -126,7 +158,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildListTile(String title, IconData icon, {String? trailingText}) {
+  Widget _buildListTile(String title, IconData icon, {String? trailingText, VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -139,8 +171,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: Text(title, style: AppTextStyles.bodyMedium),
         trailing: trailingText != null 
             ? Text(trailingText, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary))
-            : const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-        onTap: () {},
+            : Icon(Icons.chevron_right, color: AppColors.textSecondary),
+        onTap: onTap ?? () {},
       ),
     );
   }

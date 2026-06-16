@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../map/presentation/providers/location_provider.dart';
 import '../providers/ride_provider.dart';
-import '../../domain/entities/ride_option.dart';
 import '../../../../shared/widgets/primary_button.dart';
 
 class PaymentMethodScreen extends ConsumerStatefulWidget {
@@ -86,7 +83,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
     final selectedRideType = ref.read(selectedRideTypeProvider);
     final useOlaMoney = ref.read(useOlaMoneyProvider);
     if (!useOlaMoney) {
-      ref.read(useOlaMoneyProvider.notifier).state = true;
+      ref.read(useOlaMoneyProvider.notifier).update(true);
     }
     final promoDiscount = ref.read(promoDiscountProvider);
     final selectedOption = rideOptions.where((o) => o.type == selectedRideType).firstOrNull;
@@ -121,7 +118,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text('Payment Method', style: AppTextStyles.h3),
@@ -159,7 +156,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
                           children: [
                             Text('- ₹${promoDiscount.toStringAsFixed(0)} applied', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
                             IconButton(
-                              icon: const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
+                              icon: Icon(Icons.close, color: AppColors.textSecondary, size: 20),
                               onPressed: () {
                                 ref.read(promoCodeProvider.notifier).update(null);
                                 ref.read(promoDiscountProvider.notifier).update(0.0);
@@ -180,7 +177,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
                 // Ola Money
                 _buildOption(
                   'ola_money',
-                  'Ola Money',
+                  'Alo Money',
                   'Balance: ₹500', // Mocking balance for now
                   Icons.account_balance_wallet,
                   AppColors.primaryGreen,
@@ -339,7 +336,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
           // Footer
           Container(
             padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bgSurface,
               border: Border(top: BorderSide(color: AppColors.border)),
             ),
@@ -370,7 +367,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
         ),
-        child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        child: Text(label, style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ),
     );
   }

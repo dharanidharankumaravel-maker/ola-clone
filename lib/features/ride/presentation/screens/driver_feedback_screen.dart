@@ -120,7 +120,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                 
                 // Final Fare
                 Text('₹${finalFare.toStringAsFixed(0)}', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
-                Text('Paid via ${currentRide.paymentMethod == 'cash' ? 'Cash' : 'Ola Money'}', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+                Text('Paid via ${currentRide.paymentMethod == 'cash' ? 'Cash' : 'Alo Money'}', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
                 
                 const SizedBox(height: 16),
                 
@@ -153,7 +153,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                           _buildBreakdownRow('Promo Applied', '-₹${promoDiscount.toStringAsFixed(0)}', isDiscount: true),
                         if (_tipAmount > 0)
                           _buildBreakdownRow('Tip', '₹${_tipAmount.toStringAsFixed(0)}', isHighlight: true),
-                        const Divider(color: AppColors.border, height: 24),
+                        Divider(color: AppColors.border, height: 24),
                         _buildBreakdownRow('Total Paid', '₹${finalFare.toStringAsFixed(0)}', isTotal: true),
                       ],
                     ),
@@ -178,7 +178,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.primaryGreen, width: 2),
                         ),
-                        child: const Icon(Icons.person, size: 40, color: AppColors.textSecondary),
+                        child: Icon(Icons.person, size: 40, color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 16),
                       Text('How was your ride with ${currentRide.driver!.name}?', style: AppTextStyles.h3.copyWith(color: Colors.white, fontSize: 18), textAlign: TextAlign.center),
@@ -296,7 +296,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                     maxLines: 3,
                     decoration: InputDecoration(
                       hintText: 'Add an optional comment...',
-                      hintStyle: const TextStyle(color: AppColors.textSecondary),
+                      hintStyle: TextStyle(color: AppColors.textSecondary),
                       filled: true,
                       fillColor: AppColors.bgCard,
                       border: OutlineInputBorder(

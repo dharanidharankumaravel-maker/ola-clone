@@ -141,14 +141,14 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
             // Header
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: AppColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
                     onPressed: () => context.pop(),
                   ),
                   Expanded(
@@ -165,7 +165,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                           ),
                           child: Row(
                             children: [
-                              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primaryGreen, shape: BoxShape.circle)),
+                              Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.primaryGreen, shape: BoxShape.circle)),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: TextField(
@@ -175,6 +175,12 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                                   decoration: const InputDecoration(
                                     hintText: 'Current Location',
                                     border: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    filled: false,
+                                    contentPadding: EdgeInsets.zero,
                                     isDense: true,
                                   ),
                                 ),
@@ -185,7 +191,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                                     _pickupController.clear();
                                     _onSearchChanged('');
                                   },
-                                  child: const Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
+                                  child: Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
                                 ),
                             ],
                           ),
@@ -212,6 +218,12 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                                   decoration: const InputDecoration(
                                     hintText: 'Search destination...',
                                     border: InputBorder.none,
+                                    focusedBorder: InputBorder.none,
+                                    enabledBorder: InputBorder.none,
+                                    errorBorder: InputBorder.none,
+                                    disabledBorder: InputBorder.none,
+                                    filled: false,
+                                    contentPadding: EdgeInsets.zero,
                                     isDense: true,
                                   ),
                                 ),
@@ -222,7 +234,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                                     _destinationController.clear();
                                     _onSearchChanged('');
                                   },
-                                  child: const Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
+                                  child: Icon(Icons.cancel, color: AppColors.textSecondary, size: 20),
                                 ),
                             ],
                           ),
@@ -236,12 +248,12 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
 
             // Loading state
             if (_isSearching)
-              const Padding(
-                padding: EdgeInsets.all(16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
                     SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen)),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Text('Searching...', style: TextStyle(color: AppColors.textSecondary)),
                   ],
                 ),
@@ -256,8 +268,8 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                           ListTile(
                             leading: Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
-                              child: const Icon(Icons.my_location, color: AppColors.primaryGreen, size: 20),
+                              decoration: BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
+                              child: Icon(Icons.my_location, color: AppColors.primaryGreen, size: 20),
                             ),
                             title: Text('Current Location', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                             subtitle: Text(currentLocationAsync.value?.shortAddress ?? 'Fetching...', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
@@ -269,15 +281,15 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                           ),
                         // Saved places or recent searches can go here
                         ListTile(
-                          leading: const Icon(Icons.history, color: AppColors.textSecondary),
+                          leading: Icon(Icons.history, color: AppColors.textSecondary),
                           title: const Text('Central Station'),
-                          subtitle: const Text('Park Town, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          subtitle: Text('Park Town, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                           onTap: () => _handleSelectPlace(const AppLocation(latitude: 13.0827, longitude: 80.2707, shortAddress: 'Central Station', formattedAddress: 'Park Town, Chennai')),
                         ),
                         ListTile(
-                          leading: const Icon(Icons.history, color: AppColors.textSecondary),
+                          leading: Icon(Icons.history, color: AppColors.textSecondary),
                           title: const Text('Airport'),
-                          subtitle: const Text('Meenambakkam, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          subtitle: Text('Meenambakkam, Chennai', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                           onTap: () => _handleSelectPlace(const AppLocation(latitude: 12.9716, longitude: 80.1898, shortAddress: 'Airport', formattedAddress: 'Meenambakkam, Chennai')),
                         ),
                       ],
@@ -289,8 +301,8 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                         return ListTile(
                           leading: Container(
                             padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
-                            child: const Icon(Icons.location_on, color: AppColors.primaryGreen, size: 20),
+                            decoration: BoxDecoration(color: AppColors.primaryGreenLight, shape: BoxShape.circle),
+                            child: Icon(Icons.location_on, color: AppColors.primaryGreen, size: 20),
                           ),
                           title: Text(place.shortAddress ?? '', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
                           subtitle: Text(place.formattedAddress ?? '', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),

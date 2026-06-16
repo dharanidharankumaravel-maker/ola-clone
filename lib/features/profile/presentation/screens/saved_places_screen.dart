@@ -23,7 +23,7 @@ class SavedPlacesScreen extends ConsumerWidget {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: const Text('Saved Places', style: AppTextStyles.h3),
@@ -73,12 +73,12 @@ class SavedPlacesScreen extends ConsumerWidget {
                 ),
               );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Added new mock place dynamically!'), backgroundColor: AppColors.primaryGreen),
+                SnackBar(content: const Text('Added new mock place dynamically!'), backgroundColor: AppColors.primaryGreen),
               );
             },
             child: Row(
               children: [
-                const Icon(Icons.add_circle_outline, color: AppColors.primaryGreen, size: 28),
+                Icon(Icons.add_circle_outline, color: AppColors.primaryGreen, size: 28),
                 const SizedBox(width: 16),
                 Text('Add a new place', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
               ],
@@ -101,7 +101,7 @@ class SavedPlacesScreen extends ConsumerWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bgSurface,
               shape: BoxShape.circle,
             ),
@@ -119,7 +119,7 @@ class SavedPlacesScreen extends ConsumerWidget {
             ),
           ),
           if (isAdded)
-            const Icon(Icons.more_vert, color: AppColors.textSecondary),
+            Icon(Icons.more_vert, color: AppColors.textSecondary),
         ],
       ),
     );

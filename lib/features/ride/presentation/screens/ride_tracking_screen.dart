@@ -9,7 +9,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../providers/ride_provider.dart';
 import '../widgets/driver_card.dart';
-import '../../../../core/utils/map_utils.dart';
 import '../../../map/presentation/providers/map_repository_provider.dart';
 
 const Map<String, String> statusLabels = {
@@ -158,7 +157,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('🆘 Emergency SOS'),
-        content: const Text('This will share your location with emergency services and Ola Safety team.'),
+        content: const Text('This will share your location with emergency services and Alo Safety team.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -308,7 +307,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
                     ),
-                    child: const Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary),
+                    child: Icon(Icons.keyboard_arrow_down, color: AppColors.textPrimary),
                   ),
                 ),
                 GestureDetector(

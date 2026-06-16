@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../map/domain/entities/app_location.dart';
@@ -107,7 +106,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Keep Waiting', style: TextStyle(color: AppColors.textSecondary)),
+            child: Text('Keep Waiting', style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
             onPressed: () {
@@ -233,7 +232,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, color: AppColors.textSecondary, size: 16),
+                    Icon(Icons.info_outline, color: AppColors.textSecondary, size: 16),
                     const SizedBox(width: 12),
                     Expanded(child: Text('Your driver will receive a 4-digit OTP for trip verification', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary))),
                   ],
@@ -251,16 +250,16 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    border: Border.all(color: Colors.red),
+                    color: AppColors.dangerLight,
+                    border: Border.all(color: AppColors.danger, width: 1.5),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cancel_outlined, color: Colors.red, size: 18),
+                      const Icon(Icons.cancel_outlined, color: AppColors.danger, size: 18),
                       const SizedBox(width: 8),
-                      Text('Cancel Ride', style: AppTextStyles.bodyMedium.copyWith(color: Colors.red, fontWeight: FontWeight.bold)),
+                      Text('Cancel Ride', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),

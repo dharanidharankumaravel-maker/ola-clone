@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../map/presentation/providers/location_provider.dart';
 import '../../domain/entities/ride_option.dart';
 import '../providers/ride_provider.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -45,7 +44,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
     ref.read(rideOptionsProvider.notifier).update([
       const RideOption(
         type: 'parcel',
-        name: 'Ola Parcel',
+        name: 'Alo Parcel',
         description: 'Package delivery service',
         icon: 'inventory_2',
         seats: 1,
@@ -76,7 +75,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text('Parcel Details', style: AppTextStyles.h3),
@@ -197,7 +196,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.camera_alt_outlined, size: 32, color: AppColors.textSecondary),
+                        Icon(Icons.camera_alt_outlined, size: 32, color: AppColors.textSecondary),
                         const SizedBox(height: 8),
                         Text('Tap to add photo', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                       ],
@@ -231,7 +230,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
           ),
           Container(
             padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bgSurface,
               border: Border(top: BorderSide(color: AppColors.border)),
             ),

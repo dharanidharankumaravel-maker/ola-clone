@@ -40,7 +40,7 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: const Text('Your Rides', style: AppTextStyles.h3),
@@ -122,15 +122,15 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
                   ),
                 ],
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Divider(color: AppColors.border),
               ),
               Row(
                 children: [
                   Column(
                     children: [
-                      const Icon(Icons.circle, size: 12, color: AppColors.primaryGreen),
+                      Icon(Icons.circle, size: 12, color: AppColors.primaryGreen),
                       Container(height: 20, width: 2, color: AppColors.border),
                       const Icon(Icons.location_on_outlined, size: 14, color: AppColors.danger),
                     ],

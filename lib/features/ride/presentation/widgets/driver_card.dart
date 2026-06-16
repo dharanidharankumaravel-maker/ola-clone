@@ -40,7 +40,7 @@ class DriverCard extends StatelessWidget {
                       : null,
                 ),
                 child: driver.image.isEmpty
-                    ? const Icon(Icons.person, color: AppColors.textSecondary)
+                    ? Icon(Icons.person, color: AppColors.textSecondary)
                     : null,
               ),
               const SizedBox(width: 16),
@@ -95,7 +95,7 @@ class DriverCard extends StatelessWidget {
                     Text(driver.vehicleModel, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                   ],
                 ),
-                const Icon(Icons.directions_car, color: AppColors.textSecondary),
+                Icon(Icons.directions_car, color: AppColors.textSecondary),
               ],
             ),
           ),

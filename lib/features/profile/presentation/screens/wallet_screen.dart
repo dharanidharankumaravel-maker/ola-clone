@@ -71,10 +71,10 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Ola Money', style: AppTextStyles.h3),
+        title: Text('Alo Money', style: AppTextStyles.h3),
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
@@ -102,7 +102,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                       children: [
                         const Icon(Icons.account_balance_wallet, size: 32, color: AppColors.primaryGreen),
                         const SizedBox(height: 12),
-                        Text('Ola Money Balance', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
+                        Text('Alo Money Balance', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen)),
                         const SizedBox(height: 8),
                         Text('₹${balance.toStringAsFixed(0)}', style: AppTextStyles.displayTitle.copyWith(color: AppColors.primaryGreen, fontSize: 44, height: 1)),
                       ],
@@ -158,7 +158,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(bottom: BorderSide(color: AppColors.border)),
                   ),
                   child: Row(

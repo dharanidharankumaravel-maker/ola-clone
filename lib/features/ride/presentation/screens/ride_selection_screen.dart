@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/primary_button.dart';
-import '../../../map/domain/entities/app_location.dart';
 import '../../../map/presentation/providers/location_provider.dart';
 import '../../../map/presentation/providers/map_repository_provider.dart';
 import '../providers/ride_provider.dart';
@@ -24,16 +23,56 @@ class RideSelectionScreen extends ConsumerStatefulWidget {
 class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
   final MapController _mapController = MapController();
   List<LatLng> _routePoints = [];
+  String _selectedCategory = 'daily';
 
-  Future<void> _fetchRoute(LatLng start, LatLng end) async {
-    final repo = ref.read(mapRepositoryProvider);
-    final points = await repo.getRoutePolylines(start, end);
-    if (mounted) {
-      setState(() {
-        _routePoints = points;
-      });
-      _fitMapToRoute();
+  void _selectCategory(String category, List<RideOption> allOptions) {
+    setState(() {
+      _selectedCategory = category;
+    });
+    
+    final filtered = allOptions.where((option) {
+      if (category == 'rentals') {
+        return option.type.startsWith('rentals_');
+      } else if (category == 'outstation') {
+        return option.type.startsWith('outstation_');
+      } else {
+        return !option.type.startsWith('rentals_') && !option.type.startsWith('outstation_');
+      }
+    }).toList();
+    
+    if (filtered.isNotEmpty) {
+      ref.read(selectedRideTypeProvider.notifier).update(filtered[0].type);
     }
+  }
+
+  Widget _buildCategoryTab(String title, String category, List<RideOption> allOptions) {
+    final isSelected = _selectedCategory == category;
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        _selectCategory(category, allOptions);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryGreenLight : AppColors.bgCard,
+          border: Border.all(
+            color: isSelected ? AppColors.primaryGreen : AppColors.border,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: AppTextStyles.bodyMedium.copyWith(
+            fontWeight: FontWeight.bold,
+            color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
   }
 
   void _fitMapToRoute() {
@@ -72,38 +111,19 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
         if (!mounted) return;
         final options = [
           const RideOption(
-            type: 'bike',
-            name: 'Ola Bike',
-            description: 'Quick and economical bike rides',
-            icon: 'assets/image 23.png',
-            seats: 1,
+            type: 'micro',
+            name: 'Alo Micro',
+            description: 'Compact hatchbacks, pocket-friendly',
+            icon: 'assets/image 24.png',
+            seats: 4,
             available: true,
-            eta: 2,
+            eta: 3,
             fareEstimate: FareEstimate(
-              baseFare: 20,
-              distanceFare: 30,
-              timeFare: 10,
-              surgeMultiplier: 1,
-              total: 60,
-              currency: 'INR',
-              distance: 5.2,
-              duration: 15,
-            ),
-          ),
-          const RideOption(
-            type: 'auto',
-            name: 'Ola Auto',
-            description: 'Auto rickshaw at your doorstep',
-            icon: 'assets/image 30.png',
-            seats: 3,
-            available: true,
-            eta: 4,
-            fareEstimate: FareEstimate(
-              baseFare: 30,
-              distanceFare: 50,
+              baseFare: 40,
+              distanceFare: 45,
               timeFare: 12,
               surgeMultiplier: 1,
-              total: 100,
+              total: 110,
               currency: 'INR',
               distance: 5.2,
               duration: 15,
@@ -111,7 +131,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           ),
           const RideOption(
             type: 'mini',
-            name: 'Ola Mini',
+            name: 'Alo Mini',
             description: 'Comfy, economical hatchbacks',
             icon: 'assets/image 24.png',
             seats: 4,
@@ -166,6 +186,181 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               duration: 15,
             ),
           ),
+          const RideOption(
+            type: 'auto',
+            name: 'Alo Auto',
+            description: 'Auto rickshaw at your doorstep',
+            icon: 'assets/image 30.png',
+            seats: 3,
+            available: true,
+            eta: 4,
+            fareEstimate: FareEstimate(
+              baseFare: 30,
+              distanceFare: 50,
+              timeFare: 12,
+              surgeMultiplier: 1,
+              total: 100,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'bike',
+            name: 'Alo Bike',
+            description: 'Quick and economical bike rides',
+            icon: 'assets/image 23.png',
+            seats: 1,
+            available: true,
+            eta: 2,
+            fareEstimate: FareEstimate(
+              baseFare: 20,
+              distanceFare: 30,
+              timeFare: 10,
+              surgeMultiplier: 1,
+              total: 60,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          
+          // Rentals options
+          const RideOption(
+            type: 'rentals_micro',
+            name: 'Rentals Micro',
+            description: '1 Hr • 10 Km Package',
+            icon: 'assets/image 24.png',
+            seats: 4,
+            available: true,
+            eta: 5,
+            fareEstimate: FareEstimate(
+              baseFare: 200,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 250,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'rentals_mini',
+            name: 'Rentals Mini',
+            description: '2 Hr • 20 Km Package',
+            icon: 'assets/image 24.png',
+            seats: 4,
+            available: true,
+            eta: 4,
+            fareEstimate: FareEstimate(
+              baseFare: 350,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 450,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'rentals_prime',
+            name: 'Rentals Sedan',
+            description: '4 Hr • 40 Km Package',
+            icon: 'assets/image 26.png',
+            seats: 4,
+            available: true,
+            eta: 6,
+            fareEstimate: FareEstimate(
+              baseFare: 700,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 800,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'rentals_suv',
+            name: 'Rentals SUV',
+            description: '8 Hr • 80 Km Package',
+            icon: 'assets/image 28.png',
+            seats: 6,
+            available: true,
+            eta: 7,
+            fareEstimate: FareEstimate(
+              baseFare: 1300,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 1500,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          
+          // Outstation options
+          const RideOption(
+            type: 'outstation_mini',
+            name: 'Outstation Mini',
+            description: 'Intercity hatchback, pocket-friendly',
+            icon: 'assets/image 24.png',
+            seats: 4,
+            available: true,
+            eta: 15,
+            fareEstimate: FareEstimate(
+              baseFare: 1000,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 1200,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'outstation_prime',
+            name: 'Outstation Sedan',
+            description: 'Comfortable sedan for long journeys',
+            icon: 'assets/image 26.png',
+            seats: 4,
+            available: true,
+            eta: 12,
+            fareEstimate: FareEstimate(
+              baseFare: 1500,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 1800,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
+          const RideOption(
+            type: 'outstation_suv',
+            name: 'Outstation SUV',
+            description: 'Spacious SUV for intercity family travel',
+            icon: 'assets/image 28.png',
+            seats: 6,
+            available: true,
+            eta: 18,
+            fareEstimate: FareEstimate(
+              baseFare: 2200,
+              distanceFare: 0,
+              timeFare: 0,
+              surgeMultiplier: 1,
+              total: 2600,
+              currency: 'INR',
+              distance: 5.2,
+              duration: 15,
+            ),
+          ),
         ];
         ref.read(rideOptionsProvider.notifier).update(options);
         ref.read(selectedRideTypeProvider.notifier).update(options[0].type);
@@ -182,6 +377,16 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
     final isEstimating = ref.watch(isEstimatingProvider);
     final promoDiscount = ref.watch(promoDiscountProvider);
 
+    final filteredOptions = rideOptions.where((option) {
+      if (_selectedCategory == 'rentals') {
+        return option.type.startsWith('rentals_');
+      } else if (_selectedCategory == 'outstation') {
+        return option.type.startsWith('outstation_');
+      } else {
+        return !option.type.startsWith('rentals_') && !option.type.startsWith('outstation_');
+      }
+    }).toList();
+
     final pickup = locationState.pickup;
     final destination = locationState.destination;
 
@@ -196,9 +401,6 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
         } catch (_) {}
       });
     }
-
-    final selectedOption = rideOptions.where((o) => o.type == selectedRideType).firstOrNull;
-    final finalFare = (selectedOption?.fareEstimate.total ?? 0) - promoDiscount;
 
     return Scaffold(
       backgroundColor: AppColors.bgSurface,
@@ -256,11 +458,11 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               child: Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.bgCard,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                child: Icon(Icons.arrow_back, color: AppColors.textPrimary),
               ),
             ),
           ),
@@ -299,14 +501,29 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                       )
                     : Column(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: AppColors.border)),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(child: _buildCategoryTab('Daily', 'daily', rideOptions)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _buildCategoryTab('Rentals', 'rentals', rideOptions)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _buildCategoryTab('Outstation', 'outstation', rideOptions)),
+                              ],
+                            ),
+                          ),
                           Expanded(
                             child: ListView.separated(
                               controller: scrollController,
-                              padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
-                              itemCount: rideOptions.length,
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                              itemCount: filteredOptions.length,
                               separatorBuilder: (_, __) => const SizedBox(height: 12),
                               itemBuilder: (context, index) {
-                                final option = rideOptions[index];
+                                final option = filteredOptions[index];
                                 final isSelected = selectedRideType == option.type;
                                 return GestureDetector(
                                   onTap: () {
@@ -349,7 +566,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                           children: [
                                             Row(
                                               children: [
-                                                const Icon(Icons.person, size: 14, color: AppColors.textSecondary),
+                                                Icon(Icons.person, size: 14, color: AppColors.textSecondary),
                                                 Text('${option.seats}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                                               ],
                                             ),
@@ -393,7 +610,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                 const Icon(Icons.money, color: AppColors.primaryGreen, size: 20),
                                 const SizedBox(width: 8),
                                 Text('Cash', style: AppTextStyles.bodyMedium),
-                                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                                Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
                               ],
                             ),
                             if (promoDiscount > 0)
@@ -421,19 +638,21 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(color: AppColors.border),
                                 ),
-                                child: const Icon(Icons.calendar_month, color: AppColors.textPrimary),
+                                child: Icon(Icons.calendar_month, color: AppColors.textPrimary),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: PrimaryButton(
-                          text: selectedRideType == null ? 'Select a Ride' : 'Book ${rideOptions.firstWhere((o) => o.type == selectedRideType, orElse: () => rideOptions[0]).name}',
-                          onPressed: () {
-                            // Navigate to search screen
-                            context.push('/driver-search');
-                          },
-                          disabled: rideOptions.isEmpty || selectedRideType == null,
-                        ),
+                                text: selectedRideType == null || rideOptions.isEmpty
+                                    ? 'Select a Ride'
+                                    : 'Book ${rideOptions.firstWhere((o) => o.type == selectedRideType, orElse: () => rideOptions[0]).name}',
+                                onPressed: () {
+                                  // Navigate to search screen
+                                  context.push('/driver-search');
+                                },
+                                disabled: rideOptions.isEmpty || selectedRideType == null,
+                              ),
                             ),
                           ],
                         ),

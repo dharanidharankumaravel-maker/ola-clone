@@ -163,7 +163,7 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
         backgroundColor: AppColors.bgSurface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text('Schedule Ride', style: AppTextStyles.h3),
@@ -198,7 +198,7 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
                       Container(
                         height: 20,
                         margin: const EdgeInsets.only(left: 4.5),
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           border: Border(left: BorderSide(color: AppColors.border, width: 1.5)),
                         ),
                       ),
@@ -302,7 +302,7 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
           
           Container(
             padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: AppColors.bgSurface,
               border: Border(top: BorderSide(color: AppColors.border)),
             ),
