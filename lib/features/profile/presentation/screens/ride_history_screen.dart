@@ -80,26 +80,52 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
       itemCount: rides.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        final ride = rides[index];
-        final isCompleted = ride.status == 'completed';
-        final isScheduled = ride.status == 'scheduled';
-        
-        String displayDate = ride.createdAt;
-        if (isScheduled && ride.scheduledAt != null) {
-          try {
-            final dt = DateTime.parse(ride.scheduledAt!);
-            displayDate = DateFormat('MMM dd, yyyy • hh:mm a').format(dt);
-          } catch (_) {}
-        }
+        return _ExpansionRideCard(
+          ride: rides[index],
+          isUpcoming: isUpcoming,
+          ref: ref,
+        );
+      },
+    );
+  }
+}
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.bgCard,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
+class _ExpansionRideCard extends StatelessWidget {
+  final Ride ride;
+  final bool isUpcoming;
+  final WidgetRef ref;
+
+  const _ExpansionRideCard({
+    required this.ride,
+    required this.isUpcoming,
+    required this.ref,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompleted = ride.status == 'completed';
+    final isScheduled = ride.status == 'scheduled';
+    
+    String displayDate = ride.createdAt;
+    if (isScheduled && ride.scheduledAt != null) {
+      try {
+        final dt = DateTime.parse(ride.scheduledAt!);
+        displayDate = DateFormat('MMM dd, yyyy • hh:mm a').format(dt);
+      } catch (_) {}
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.bgCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.all(16),
+          childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -149,34 +175,62 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
                   Text('₹${ride.fareEstimate.total.toStringAsFixed(0)}', style: AppTextStyles.h3),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        ride.rideType == 'bike' ? Icons.pedal_bike : Icons.directions_car,
-                        size: 20,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text('${ride.rideType.toUpperCase()} • ${ride.id}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-                    ],
-                  ),
-                  if (isScheduled)
-                    GestureDetector(
-                      onTap: () {
-                        ref.read(scheduledRidesProvider.notifier).cancelRide(ride.id);
-                      },
-                      child: Text('Cancel', style: AppTextStyles.caption.copyWith(color: AppColors.danger, fontWeight: FontWeight.bold)),
-                    )
-                ],
-              ),
             ],
           ),
-        );
-      },
+          children: [
+            const Divider(color: AppColors.border),
+            const SizedBox(height: 12),
+            _buildDetailRow('Trip ID', ride.id),
+            _buildDetailRow('Driver Name', ride.driver?.name ?? 'N/A'),
+            _buildDetailRow('Distance Travelled', '${ride.distance.toStringAsFixed(1)} km'),
+            _buildDetailRow('Amount Paid', '₹${ride.fareEstimate.total.toStringAsFixed(0)}'),
+            _buildDetailRow('Payment Type', ride.paymentMethod.toUpperCase()),
+            _buildDetailRow('Tip Offered', '₹0'),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Downloading invoice...')),
+                  );
+                },
+                icon: const Icon(Icons.download, color: AppColors.primaryGreen),
+                label: const Text('Download Invoice', style: TextStyle(color: AppColors.primaryGreen)),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primaryGreen),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ),
+            if (isScheduled) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    ref.read(scheduledRidesProvider.notifier).cancelRide(ride.id);
+                  },
+                  child: Text('Cancel Ride', style: AppTextStyles.caption.copyWith(color: AppColors.danger, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+          Text(value, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }
