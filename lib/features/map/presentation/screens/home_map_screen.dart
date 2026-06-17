@@ -11,6 +11,8 @@ import '../providers/location_provider.dart';
 import '../providers/map_repository_provider.dart';
 import '../providers/ghost_cars_provider.dart';
 import '../../../ride/presentation/providers/ride_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeMapScreen extends ConsumerStatefulWidget {
   const HomeMapScreen({super.key});
@@ -20,10 +22,13 @@ class HomeMapScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final MapController _mapController = MapController();
   bool _hasCentered = false;
   Timer? _debounceTimer;
   bool _isFetchingReverseGeocode = false;
+  int _bottomNavIndex = 0;
+  String _selectedHomeCategory = 'Daily';
   bool _isDragging = false;
 
   @override
@@ -52,7 +57,37 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
     });
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.bgSurface,
+      drawer: _buildDrawer(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _bottomNavIndex,
+        onTap: (index) {
+          setState(() => _bottomNavIndex = index);
+          if (index == 0) {
+            // Already on home
+          } else if (index == 1) {
+            context.push('/parcel');
+            // reset index so when we come back it's still 0
+            setState(() => _bottomNavIndex = 0);
+          } else if (index == 2) {
+            context.push('/quick-book');
+            setState(() => _bottomNavIndex = 0);
+          } else if (index == 3) {
+            context.push('/schedule-ride');
+            setState(() => _bottomNavIndex = 0);
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primaryGreen,
+        unselectedItemColor: AppColors.textSecondary,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Parcel'),
+          BottomNavigationBarItem(icon: Icon(Icons.flash_on), label: 'Quickbook'),
+          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedule'),
+        ],
+      ),
       body: Stack(
         children: [
           // 1. The Map
@@ -167,7 +202,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 _buildCircularButton(
                   icon: Icons.menu,
                   onTap: () {
-                    context.push('/profile');
+                    _scaffoldKey.currentState?.openDrawer();
                   },
                 ),
                 const SizedBox(width: 12),
@@ -280,8 +315,43 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         if (currentPickup == null && currentLocationAsync.value != null) {
                           ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                         }
-                        ref.read(selectedRideTypeProvider.notifier).update(null);
-                        context.push('/destination-search', extra: false);
+                        
+                        switch (_selectedHomeCategory) {
+                          case 'Daily':
+                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                            ref.read(selectedRideTypeProvider.notifier).update(null);
+                            break;
+                          case 'Bike':
+                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                            ref.read(selectedRideTypeProvider.notifier).update('bike');
+                            break;
+                          case 'Auto':
+                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                            ref.read(selectedRideTypeProvider.notifier).update('auto');
+                            break;
+                          case 'Scooter':
+                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                            ref.read(selectedRideTypeProvider.notifier).update('scooter');
+                            break;
+                          case 'Rentals':
+                            ref.read(selectedRideCategoryProvider.notifier).update('rentals');
+                            ref.read(selectedRideTypeProvider.notifier).update(null);
+                            break;
+                          case 'Outstation':
+                            ref.read(selectedRideCategoryProvider.notifier).update('outstation');
+                            ref.read(selectedRideTypeProvider.notifier).update(null);
+                            break;
+                          case 'Parcel':
+                            ref.read(selectedRideCategoryProvider.notifier).update('parcel');
+                            ref.read(selectedRideTypeProvider.notifier).update(null);
+                            break;
+                        }
+                        
+                        if (_selectedHomeCategory == 'Parcel') {
+                          context.push('/parcel');
+                        } else {
+                          context.push('/destination-search', extra: false);
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -308,60 +378,47 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildCategory('assets/image 24.png', Icons.directions_car, 'Daily', onTap: () {
-                          if (currentPickup == null && currentLocationAsync.value != null) {
-                            ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                          }
-                          ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                          ref.read(selectedRideTypeProvider.notifier).update(null);
-                          context.push('/destination-search', extra: false);
-                        }),
-                        _buildCategory(null, Icons.key, 'Rentals', onTap: () {
-                          if (currentPickup == null && currentLocationAsync.value != null) {
-                            ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                          }
-                          ref.read(selectedRideCategoryProvider.notifier).update('rentals');
-                          ref.read(selectedRideTypeProvider.notifier).update(null);
-                          context.push('/destination-search', extra: false);
-                        }),
-                        _buildCategory(null, Icons.map_outlined, 'Outstation', onTap: () {
-                          if (currentPickup == null && currentLocationAsync.value != null) {
-                            ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                          }
-                          ref.read(selectedRideCategoryProvider.notifier).update('outstation');
-                          ref.read(selectedRideTypeProvider.notifier).update(null);
-                          context.push('/destination-search', extra: false);
-                        }),
-                        _buildCategory(null, Icons.inventory_2_outlined, 'Parcel', onTap: () {
-                          context.push('/parcel');
-                        }),
-                      ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: [
+                          _buildCategory('assets/mini.png', Icons.directions_car, 'Daily', isSelected: _selectedHomeCategory == 'Daily', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Daily');
+                          }),
+                          _buildCategory('assets/bike.png', Icons.motorcycle, 'Bike', isSelected: _selectedHomeCategory == 'Bike', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Bike');
+                          }),
+                          _buildCategory('assets/auto.png', Icons.electric_rickshaw, 'Auto', isSelected: _selectedHomeCategory == 'Auto', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Auto');
+                          }),
+                          _buildCategory('assets/scooter.png', Icons.moped, 'Scooter', isSelected: _selectedHomeCategory == 'Scooter', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Scooter');
+                          }),
+                          _buildCategory('assets/rentals.png', Icons.key, 'Rentals', isSelected: _selectedHomeCategory == 'Rentals', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Rentals');
+                          }),
+                          _buildCategory('assets/outstation.png', Icons.map_outlined, 'Outstation', isSelected: _selectedHomeCategory == 'Outstation', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Outstation');
+                          }),
+                          _buildCategory('assets/parcel.svg', Icons.inventory_2_outlined, 'Parcel', isSelected: _selectedHomeCategory == 'Parcel', onTap: () {
+                            setState(() => _selectedHomeCategory = 'Parcel');
+                          }),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
                     Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.border),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildRecentSearch('Central Station', 'Park Town, Chennai', true, () {
-                            if (currentPickup == null && currentLocationAsync.value != null) {
-                              ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                            }
-                            context.push('/destination-search', extra: false);
-                          }),
-                          _buildRecentSearch('Airport', 'Meenambakkam, Chennai', false, () {
-                            if (currentPickup == null && currentLocationAsync.value != null) {
-                              ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                            }
-                            context.push('/destination-search', extra: false);
-                          }),
-                        ],
+                      padding: const EdgeInsets.symmetric(vertical: 24),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '#AloOnTheMove',
+                        style: AppTextStyles.h2.copyWith(
+                          color: AppColors.primaryGreen.withOpacity(0.8),
+                          letterSpacing: 1.2,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
                   ],
@@ -396,28 +453,40 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
     );
   }
 
-  Widget _buildCategory(String? assetPath, IconData fallbackIcon, String title, {required VoidCallback onTap}) {
+  Widget _buildCategory(String imagePath, IconData icon, String label, {required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.bgCard,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
+      child: Container(
+        margin: const EdgeInsets.only(right: 16),
+        width: 72,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primaryGreenLight.withOpacity(0.3) : AppColors.bgSurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border, width: isSelected ? 2 : 1),
+              ),
+              child: imagePath.endsWith('.svg') 
+                  ? SvgPicture.asset(imagePath, width: 32, height: 32)
+                  : (imagePath.isNotEmpty 
+                      ? Image.asset(
+                          imagePath, 
+                          width: 32, 
+                          height: 32, 
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Icon(icon, size: 32, color: AppColors.textSecondary),
+                        )
+                      : Icon(icon, size: 32, color: AppColors.textSecondary)),
             ),
-            child: Center(
-              child: assetPath != null
-                  ? Image.asset(assetPath, width: 44, height: 44, fit: BoxFit.contain)
-                  : Icon(fallbackIcon, color: AppColors.primaryGreen, size: 28),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(title, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)),
-        ],
+            const SizedBox(height: 8),
+            Text(label, style: AppTextStyles.caption.copyWith(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+            ), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }
@@ -449,6 +518,123 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDrawer() {
+    final user = ref.watch(authProvider).value;
+    
+    return Drawer(
+      backgroundColor: AppColors.bgSurface,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Profile Header
+            InkWell(
+              onTap: () {
+                context.pop(); // Close drawer
+                context.push('/profile');
+              },
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppColors.border)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primaryGreenLight,
+                        border: Border.all(color: AppColors.primaryGreen, width: 2),
+                      ),
+                      alignment: Alignment.center,
+                      child: user?.profilePhoto != null
+                          ? ClipOval(
+                              child: Image.network(
+                                user!.profilePhoto!,
+                                width: 56,
+                                height: 56,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Text(
+                              user?.name?.isNotEmpty == true ? user!.name![0].toUpperCase() : '?',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryGreen,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user?.name ?? 'Set your name', style: AppTextStyles.h3),
+                          const SizedBox(height: 4),
+                          Text(user?.phone ?? '', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+            ),
+            
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  _buildDrawerItem(Icons.history, 'Ride History', () {
+                    context.pop();
+                    context.push('/ride-history');
+                  }),
+                  _buildDrawerItem(Icons.account_balance_wallet_outlined, 'Alo Wallet', () {
+                    context.pop();
+                    context.push('/wallet');
+                  }),
+                  _buildDrawerItem(Icons.inventory_2_outlined, 'Alo Parcel', () {
+                    context.pop();
+                    context.push('/parcel');
+                  }),
+                  _buildDrawerItem(Icons.location_on_outlined, 'Saved Places', () {
+                    context.pop();
+                    context.push('/saved-places');
+                  }),
+                  _buildDrawerItem(Icons.headset_mic_outlined, 'Help & Support', () {
+                    context.pop();
+                    context.push('/support');
+                  }),
+                  _buildDrawerItem(Icons.settings_outlined, 'Settings', () {
+                    context.pop();
+                    context.push('/settings');
+                  }),
+                ],
+              ),
+            ),
+            
+            // Footer
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text('App Version 1.0.0', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.textPrimary, size: 24),
+      title: Text(title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
     );
   }
 }

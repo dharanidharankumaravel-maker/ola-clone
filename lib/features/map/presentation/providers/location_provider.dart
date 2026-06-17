@@ -186,6 +186,17 @@ class SavedPlacesNotifier extends Notifier<List<SavedPlace>> {
   void addPlace(SavedPlace place) {
     state = [...state, place];
   }
+
+  void removePlace(SavedPlace place) {
+    state = state.where((p) => p != place).toList();
+  }
+
+  bool isSaved(AppLocation location) {
+    return state.any((p) => 
+      p.location.latitude == location.latitude && 
+      p.location.longitude == location.longitude
+    );
+  }
 }
 
 final savedPlacesProvider = NotifierProvider<SavedPlacesNotifier, List<SavedPlace>>(() {

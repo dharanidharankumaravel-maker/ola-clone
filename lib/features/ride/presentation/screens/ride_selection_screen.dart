@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../shared/widgets/primary_button.dart';
@@ -115,12 +116,15 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
     ref.read(isEstimatingProvider.notifier).update(true);
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
-      final options = [
+      final options = <RideOption>[];
+      
+      if (distance < 100) {
+        options.addAll([
           RideOption(
             type: 'micro',
             name: 'Alo Micro',
             description: 'Compact hatchbacks, pocket-friendly',
-            icon: 'assets/image 24.png',
+            icon: 'assets/micro.png',
             seats: 4,
             available: true,
             eta: 3,
@@ -139,7 +143,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'mini',
             name: 'Alo Mini',
             description: 'Comfy, economical hatchbacks',
-            icon: 'assets/image 24.png',
+            icon: 'assets/mini.png',
             seats: 4,
             available: true,
             eta: 3,
@@ -158,7 +162,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'prime',
             name: 'Prime Sedan',
             description: 'Spacious, top-rated sedans',
-            icon: 'assets/image 26.png',
+            icon: 'assets/prime.png',
             seats: 4,
             available: true,
             eta: 5,
@@ -177,7 +181,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'suv',
             name: 'Prime SUV',
             description: 'Spacious SUVs for family trips',
-            icon: 'assets/image 28.png',
+            icon: 'assets/prime_suv.png',
             seats: 6,
             available: true,
             eta: 6,
@@ -196,7 +200,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'auto',
             name: 'Alo Auto',
             description: 'Auto rickshaw at your doorstep',
-            icon: 'assets/image 30.png',
+            icon: 'assets/auto.png',
             seats: 3,
             available: true,
             eta: 4,
@@ -215,7 +219,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'bike',
             name: 'Alo Bike',
             description: 'Quick and economical bike rides',
-            icon: 'assets/image 23.png',
+            icon: 'assets/bike.png',
             seats: 1,
             available: true,
             eta: 2,
@@ -230,13 +234,36 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               duration: duration,
             ),
           ),
+          RideOption(
+            type: 'scooter',
+            name: 'Alo Scooter',
+            description: 'Beat the traffic on a scooter',
+            icon: 'assets/scooter.png',
+            seats: 1,
+            available: true,
+            eta: 3,
+            fareEstimate: FareEstimate(
+              baseFare: 25,
+              distanceFare: distance * 7,
+              timeFare: duration * 1.0,
+              surgeMultiplier: 1,
+              total: 25 + (distance * 7) + (duration * 1.0),
+              currency: 'INR',
+              distance: distance,
+              duration: duration,
+            ),
+          ),
+        ]);
+      }
           
-          // Rentals options
+      // Rentals options
+      if (distance < 50) {
+        options.addAll([
           RideOption(
             type: 'rentals_micro',
             name: 'Rentals Micro',
             description: '1 Hr • 10 Km Package',
-            icon: 'assets/image 24.png',
+            icon: 'assets/micro.png',
             seats: 4,
             available: true,
             eta: 5,
@@ -255,7 +282,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_mini',
             name: 'Rentals Mini',
             description: '2 Hr • 20 Km Package',
-            icon: 'assets/image 24.png',
+            icon: 'assets/mini.png',
             seats: 4,
             available: true,
             eta: 4,
@@ -274,7 +301,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_prime',
             name: 'Rentals Sedan',
             description: '4 Hr • 40 Km Package',
-            icon: 'assets/image 26.png',
+            icon: 'assets/prime.png',
             seats: 4,
             available: true,
             eta: 6,
@@ -293,7 +320,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_suv',
             name: 'Rentals SUV',
             description: '8 Hr • 80 Km Package',
-            icon: 'assets/image 28.png',
+            icon: 'assets/prime_suv.png',
             seats: 6,
             available: true,
             eta: 7,
@@ -308,13 +335,17 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               duration: duration,
             ),
           ),
+        ]);
+      }
           
-          // Outstation options
+      // Outstation options
+      if (distance >= 40) {
+        options.addAll([
           RideOption(
             type: 'outstation_mini',
             name: 'Outstation Mini',
             description: 'Intercity hatchback, pocket-friendly',
-            icon: 'assets/image 24.png',
+            icon: 'assets/mini.png',
             seats: 4,
             available: true,
             eta: 15,
@@ -333,7 +364,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'outstation_prime',
             name: 'Outstation Sedan',
             description: 'Comfortable sedan for long journeys',
-            icon: 'assets/image 26.png',
+            icon: 'assets/prime.png',
             seats: 4,
             available: true,
             eta: 12,
@@ -352,7 +383,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'outstation_suv',
             name: 'Outstation SUV',
             description: 'Spacious SUV for intercity family travel',
-            icon: 'assets/image 28.png',
+            icon: 'assets/prime_suv.png',
             seats: 6,
             available: true,
             eta: 18,
@@ -367,7 +398,21 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               duration: duration,
             ),
           ),
-        ];
+        ]);
+      }
+        
+        final existingCategory = ref.read(selectedRideCategoryProvider);
+        final hasDaily = options.any((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel');
+        final hasRentals = options.any((o) => o.type.startsWith('rentals_'));
+        final hasOutstation = options.any((o) => o.type.startsWith('outstation_'));
+        
+        if (existingCategory == 'outstation' && !hasOutstation) {
+          ref.read(selectedRideCategoryProvider.notifier).update(hasDaily ? 'daily' : (hasRentals ? 'rentals' : 'daily'));
+        } else if (existingCategory == 'rentals' && !hasRentals) {
+          ref.read(selectedRideCategoryProvider.notifier).update(hasDaily ? 'daily' : (hasOutstation ? 'outstation' : 'daily'));
+        } else if (existingCategory == 'daily' && !hasDaily) {
+          ref.read(selectedRideCategoryProvider.notifier).update(hasOutstation ? 'outstation' : (hasRentals ? 'rentals' : 'outstation'));
+        }
         
         final existingType = ref.read(selectedRideTypeProvider);
         if (existingType != null && existingType.isNotEmpty) {
@@ -493,6 +538,61 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
               ),
             ),
           ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: Builder(
+              builder: (context) {
+                final savedPlaces = ref.watch(savedPlacesProvider);
+                final locationToSave = destination;
+                final isSaved = locationToSave != null && savedPlaces.any((p) => 
+                  p.location.latitude == locationToSave.latitude && 
+                  p.location.longitude == locationToSave.longitude
+                );
+                
+                return GestureDetector(
+                  onTap: () {
+                    if (locationToSave != null) {
+                      if (isSaved) {
+                        final place = savedPlaces.firstWhere((p) => 
+                          p.location.latitude == locationToSave.latitude && 
+                          p.location.longitude == locationToSave.longitude
+                        );
+                        ref.read(savedPlacesProvider.notifier).removePlace(place);
+                      } else {
+                        ref.read(savedPlacesProvider.notifier).addPlace(
+                          SavedPlace(
+                            title: locationToSave.shortAddress ?? 'Saved Place',
+                            subtitle: locationToSave.formattedAddress,
+                            location: locationToSave,
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Destination added to saved places!'), 
+                            backgroundColor: AppColors.primaryGreen,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.bgCard,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isSaved ? Icons.favorite : Icons.favorite_border,
+                      color: isSaved ? Colors.red : AppColors.textPrimary,
+                    ),
+                  ),
+                );
+              }
+            ),
+          ),
           DraggableScrollableSheet(
             initialChildSize: 0.5,
             minChildSize: 0.5,
@@ -534,14 +634,25 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                               decoration: BoxDecoration(
                                 border: Border(bottom: BorderSide(color: AppColors.border)),
                               ),
-                              child: Row(
-                                children: [
-                                  Expanded(child: _buildCategoryTab('Daily', 'daily', rideOptions, selectedCategory)),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: _buildCategoryTab('Rentals', 'rentals', rideOptions, selectedCategory)),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: _buildCategoryTab('Outstation', 'outstation', rideOptions, selectedCategory)),
-                                ],
+                              child: Builder(
+                                builder: (context) {
+                                  final hasDaily = rideOptions.any((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel');
+                                  final hasRentals = rideOptions.any((o) => o.type.startsWith('rentals_'));
+                                  final hasOutstation = rideOptions.any((o) => o.type.startsWith('outstation_'));
+                                  
+                                  List<Widget> tabs = [];
+                                  if (hasDaily) tabs.add(Expanded(child: _buildCategoryTab('Daily', 'daily', rideOptions, selectedCategory)));
+                                  if (hasRentals) tabs.add(Expanded(child: _buildCategoryTab('Rentals', 'rentals', rideOptions, selectedCategory)));
+                                  if (hasOutstation) tabs.add(Expanded(child: _buildCategoryTab('Outstation', 'outstation', rideOptions, selectedCategory)));
+                                  
+                                  List<Widget> rowChildren = [];
+                                  for (int i = 0; i < tabs.length; i++) {
+                                    rowChildren.add(tabs[i]);
+                                    if (i < tabs.length - 1) rowChildren.add(const SizedBox(width: 8));
+                                  }
+                                  
+                                  return Row(children: rowChildren);
+                                }
                               ),
                             ),
                           Expanded(
@@ -567,17 +678,24 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                     ),
                                     child: Row(
                                       children: [
-                                        Image.asset(
-                                          option.icon,
-                                          width: 50,
-                                          height: 36,
-                                          fit: BoxFit.contain,
-                                          errorBuilder: (context, error, stackTrace) => Icon(
-                                            Icons.directions_car,
-                                            size: 36,
-                                            color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
-                                          ),
-                                        ),
+                                        option.icon.endsWith('.svg')
+                                            ? SvgPicture.asset(
+                                                option.icon,
+                                                width: 50,
+                                                height: 36,
+                                                fit: BoxFit.contain,
+                                              )
+                                            : Image.asset(
+                                                option.icon,
+                                                width: 50,
+                                                height: 36,
+                                                fit: BoxFit.contain,
+                                                errorBuilder: (context, error, stackTrace) => Icon(
+                                                  Icons.directions_car,
+                                                  size: 36,
+                                                  color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+                                                ),
+                                              ),
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Column(

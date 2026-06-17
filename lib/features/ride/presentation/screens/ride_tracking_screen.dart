@@ -11,6 +11,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../providers/ride_provider.dart';
 import '../widgets/driver_card.dart';
 import '../../../map/presentation/providers/map_repository_provider.dart';
+import '../../../map/presentation/providers/location_provider.dart';
 
 const Map<String, String> statusLabels = {
   'searching': 'Finding driver...',
@@ -282,6 +283,17 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     final status = currentRide.status;
     final color = statusColors[status] ?? AppColors.primaryGreen;
     final isParcel = currentRide.rideType == 'parcel';
+    final rideType = currentRide.rideType;
+
+    String ghostAsset = 'assets/ghost_car.png';
+    IconData fallbackIcon = Icons.directions_car;
+    if (isParcel) {
+      ghostAsset = 'assets/ghost_parcel_delivery.png';
+      fallbackIcon = Icons.inventory_2_outlined;
+    } else if (rideType == 'bike' || rideType == 'scooter') {
+      ghostAsset = 'assets/ghost bike.png';
+      fallbackIcon = Icons.motorcycle;
+    }
     
     String getStatusLabel(String s) {
       if (isParcel) {
@@ -358,7 +370,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       height: 40,
                       child: Transform.rotate(
                         angle: currentRide.driver!.heading * (3.14159 / 180),
-                        child: const Icon(Icons.directions_car, color: Colors.blue, size: 40),
+                        child: Image.asset(ghostAsset, width: 40, height: 40, errorBuilder: (_,__,___) => Icon(fallbackIcon, color: Colors.blue, size: 40)),
                       ),
                     ),
                 ],
@@ -393,17 +405,73 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: _handleSOS,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 2))],
+                Row(
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        final savedPlaces = ref.watch(savedPlacesProvider);
+                        final locationToSave = currentRide.destination;
+                        final isSaved = savedPlaces.any((p) => 
+                          p.location.latitude == locationToSave.latitude && 
+                          p.location.longitude == locationToSave.longitude
+                        );
+                        
+                        return GestureDetector(
+                          onTap: () {
+                            if (isSaved) {
+                              final place = savedPlaces.firstWhere((p) => 
+                                p.location.latitude == locationToSave.latitude && 
+                                p.location.longitude == locationToSave.longitude
+                              );
+                              ref.read(savedPlacesProvider.notifier).removePlace(place);
+                            } else {
+                              ref.read(savedPlacesProvider.notifier).addPlace(
+                                SavedPlace(
+                                  title: locationToSave.shortAddress ?? 'Saved Place',
+                                  subtitle: locationToSave.formattedAddress,
+                                  location: locationToSave,
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Destination added to saved places!'), 
+                                  backgroundColor: AppColors.primaryGreen,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.bgCard,
+                              shape: BoxShape.circle,
+                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
+                            ),
+                            child: Icon(
+                              isSaved ? Icons.favorite : Icons.favorite_border,
+                              color: isSaved ? Colors.red : AppColors.textPrimary,
+                              size: 20,
+                            ),
+                          ),
+                        );
+                      }
                     ),
-                    child: Text('SOS', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                  ),
+                    GestureDetector(
+                      onTap: _handleSOS,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 2))],
+                        ),
+                        child: Text('SOS', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -484,6 +552,8 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                         DriverCard(
                           driver: currentRide.driver!,
                           otp: currentRide.otp ?? '----',
+                          ghostAsset: ghostAsset,
+                          fallbackIcon: fallbackIcon,
                           onCall: () => _handleCall(currentRide.driver!.phone),
                           onMessage: () {},
                           onShareEta: () => _handleShareEta('${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})'),

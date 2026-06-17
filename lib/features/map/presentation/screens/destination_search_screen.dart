@@ -323,6 +323,29 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                       },
                     ),
             ),
+            Container(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                border: Border(top: BorderSide(color: AppColors.border)),
+              ),
+              child: InkWell(
+                onTap: () async {
+                  final result = await context.push<AppLocation>('/map-picker', extra: widget.isPickup);
+                  if (result != null && mounted) {
+                    _handleSelectPlace(result);
+                  }
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.map, color: AppColors.textPrimary),
+                    const SizedBox(width: 8),
+                    Text('Locate on Map', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

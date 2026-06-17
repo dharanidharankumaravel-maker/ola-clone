@@ -131,19 +131,22 @@ class _ExpansionRideCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Text(displayDate, style: AppTextStyles.bodyMedium),
-                      if (ride.parcelDetails != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
-                          child: Text('Parcel', style: AppTextStyles.caption.copyWith(color: Colors.orange[800], fontWeight: FontWeight.bold)),
-                        ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Flexible(child: Text(displayDate, style: AppTextStyles.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        if (ride.parcelDetails != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
+                            child: Text('Parcel', style: AppTextStyles.caption.copyWith(color: Colors.orange[800], fontWeight: FontWeight.bold)),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -243,9 +246,11 @@ class _ExpansionRideCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-          Text(value, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
+          Expanded(child: Text(label, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary))),
+          const SizedBox(width: 16),
+          Expanded(child: Text(value, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600), textAlign: TextAlign.right)),
         ],
       ),
     );

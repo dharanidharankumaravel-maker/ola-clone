@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../map/domain/entities/app_location.dart';
 import '../../../map/presentation/providers/location_provider.dart';
 import '../../domain/entities/ride.dart';
+import '../../domain/entities/ride_option.dart';
 import '../providers/ride_provider.dart';
 
 class DriverSearchScreen extends ConsumerStatefulWidget {
@@ -113,6 +114,37 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
           ),
           TextButton(
             onPressed: () {
+              final locationState = ref.read(locationProvider);
+              final rideType = ref.read(selectedRideTypeProvider) ?? 'mini';
+              final options = ref.read(rideOptionsProvider);
+              final paymentMethod = ref.read(paymentMethodProvider);
+              
+              if (locationState.pickup != null && locationState.destination != null) {
+                final selectedOption = options.isNotEmpty 
+                    ? options.firstWhere((o) => o.type == rideType, orElse: () => options.first)
+                    : null;
+                
+                final mockRide = Ride(
+                  id: 'ride_${DateTime.now().millisecondsSinceEpoch}',
+                  userId: 'usr_1',
+                  status: 'cancelled',
+                  pickup: locationState.pickup!,
+                  destination: locationState.destination!,
+                  distance: selectedOption?.fareEstimate.distance ?? 5.0,
+                  duration: selectedOption?.fareEstimate.duration ?? 15,
+                  rideType: selectedOption?.type ?? rideType,
+                  fareEstimate: selectedOption?.fareEstimate ?? const FareEstimate(
+                    baseFare: 0, timeFare: 0, distanceFare: 0, surgeMultiplier: 1, total: 0, currency: 'INR', distance: 0, duration: 0,
+                  ),
+                  paymentMethod: paymentMethod,
+                  eta: 0,
+                  otp: '0000',
+                  createdAt: DateTime.now().toIso8601String(),
+                  updatedAt: DateTime.now().toIso8601String(),
+                );
+                ref.read(rideHistoryProvider.notifier).addRide(mockRide);
+              }
+              
               Navigator.pop(ctx);
               context.go('/');
             },
@@ -126,15 +158,26 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
   @override
   Widget build(BuildContext context) {
     final locationState = ref.watch(locationProvider);
+    final rideType = ref.watch(selectedRideTypeProvider);
+    final category = ref.watch(selectedRideCategoryProvider);
+    
+    String ghostAsset = 'assets/ghost_car.png';
+    IconData fallbackIcon = Icons.directions_car;
+    if (category == 'parcel') {
+      ghostAsset = 'assets/ghost_parcel_delivery.png';
+      fallbackIcon = Icons.inventory_2_outlined;
+    } else if (rideType == 'bike' || rideType == 'scooter') {
+      ghostAsset = 'assets/ghost bike.png';
+      fallbackIcon = Icons.motorcycle;
+    }
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Radar Pulse Animation
               SizedBox(
@@ -177,7 +220,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.primaryGreen, width: 2),
                       ),
-                      child: const Icon(Icons.directions_car, size: 40, color: AppColors.primaryGreen),
+                      child: Image.asset(ghostAsset, width: 40, height: 40, errorBuilder: (_,__,___) => Icon(fallbackIcon, size: 40, color: AppColors.primaryGreen)),
                     ),
                   ],
                 ),

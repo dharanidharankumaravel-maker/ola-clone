@@ -9,6 +9,8 @@ class DriverCard extends StatelessWidget {
   final VoidCallback onCall;
   final VoidCallback onMessage;
   final VoidCallback onShareEta;
+  final String ghostAsset;
+  final IconData fallbackIcon;
 
   const DriverCard({
     super.key,
@@ -17,6 +19,8 @@ class DriverCard extends StatelessWidget {
     required this.onCall,
     required this.onMessage,
     required this.onShareEta,
+    this.ghostAsset = 'assets/ghost_car.png',
+    this.fallbackIcon = Icons.directions_car,
   });
 
   @override
@@ -95,7 +99,7 @@ class DriverCard extends StatelessWidget {
                     Text(driver.vehicleModel, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                   ],
                 ),
-                Icon(Icons.directions_car, color: AppColors.textSecondary),
+                Image.asset(ghostAsset, width: 24, height: 24, errorBuilder: (_,__,___) => Icon(fallbackIcon, color: AppColors.textSecondary)),
               ],
             ),
           ),

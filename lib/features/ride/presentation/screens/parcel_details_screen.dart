@@ -151,7 +151,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
         type: 'parcel',
         name: 'Alo Parcel',
         description: 'Package delivery service',
-        icon: 'assets/image 23.png', // Or a parcel icon
+        icon: 'assets/bike.png', // Or a parcel icon
         seats: 1,
         available: true,
         eta: 5,

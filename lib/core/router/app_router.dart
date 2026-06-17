@@ -8,6 +8,7 @@ import '../../features/profile/presentation/screens/profile_setup_screen.dart';
 import '../../features/map/presentation/screens/home_map_screen.dart';
 import '../../features/map/presentation/screens/destination_search_screen.dart';
 import '../../features/map/presentation/screens/map_picker_screen.dart';
+import '../../features/map/presentation/screens/quick_book_screen.dart';
 import '../../features/ride/presentation/screens/ride_selection_screen.dart';
 import '../../features/ride/presentation/screens/schedule_ride_screen.dart';
 import '../../features/ride/presentation/screens/driver_search_screen.dart';
@@ -158,6 +159,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) => const HomeMapScreen(),
+    ),
+    GoRoute(
+      path: '/quick-book',
+      builder: (context, state) => const QuickBookScreen(),
     ),
   ],
 );

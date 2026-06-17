@@ -136,6 +136,66 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
               ),
             ),
             
+            // Heart Button
+            Positioned(
+              top: 80,
+              right: 16,
+              child: Builder(
+                builder: (context) {
+                  final savedPlaces = ref.watch(savedPlacesProvider);
+                  final locationToSave = _currentSelection;
+                  final isSaved = locationToSave != null && savedPlaces.any((p) => 
+                    p.location.latitude == locationToSave.latitude && 
+                    p.location.longitude == locationToSave.longitude
+                  );
+                  
+                  return GestureDetector(
+                    onTap: () {
+                      if (locationToSave != null) {
+                        if (isSaved) {
+                          final place = savedPlaces.firstWhere((p) => 
+                            p.location.latitude == locationToSave.latitude && 
+                            p.location.longitude == locationToSave.longitude
+                          );
+                          ref.read(savedPlacesProvider.notifier).removePlace(place);
+                        } else {
+                          ref.read(savedPlacesProvider.notifier).addPlace(
+                            SavedPlace(
+                              title: locationToSave.shortAddress ?? 'Saved Place',
+                              subtitle: locationToSave.formattedAddress,
+                              location: locationToSave,
+                            ),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Added to saved places!'), 
+                              backgroundColor: AppColors.primaryGreen,
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                      child: Icon(
+                        isSaved ? Icons.favorite : Icons.favorite_border,
+                        color: isSaved ? Colors.red : AppColors.textSecondary,
+                        size: 24,
+                      ),
+                    ),
+                  );
+                }
+              ),
+            ),
+            
             // Center Pin
             IgnorePointer(
               child: Align(

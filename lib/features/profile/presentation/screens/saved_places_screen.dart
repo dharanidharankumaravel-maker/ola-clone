@@ -36,6 +36,7 @@ class SavedPlacesScreen extends ConsumerWidget {
             subtitle: homePlace?.subtitle ?? 'Add home address',
             icon: Icons.home_outlined,
             isAdded: homePlace != null,
+            onDelete: homePlace != null ? () => ref.read(savedPlacesProvider.notifier).removePlace(homePlace) : null,
           ),
           const SizedBox(height: 16),
           _buildSavedPlace(
@@ -43,6 +44,7 @@ class SavedPlacesScreen extends ConsumerWidget {
             subtitle: workPlace?.subtitle ?? 'Add work address',
             icon: Icons.work_outline,
             isAdded: workPlace != null,
+            onDelete: workPlace != null ? () => ref.read(savedPlacesProvider.notifier).removePlace(workPlace) : null,
           ),
           const SizedBox(height: 24),
           const Text('Other Places', style: AppTextStyles.sectionTitle),
@@ -55,6 +57,7 @@ class SavedPlacesScreen extends ConsumerWidget {
               subtitle: p.subtitle ?? '',
               icon: Icons.location_on_outlined,
               isAdded: true,
+              onDelete: () => ref.read(savedPlacesProvider.notifier).removePlace(p),
             ),
           )),
           
@@ -87,7 +90,7 @@ class SavedPlacesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSavedPlace({required String title, required String subtitle, required IconData icon, required bool isAdded}) {
+  Widget _buildSavedPlace({required String title, required String subtitle, required IconData icon, required bool isAdded, VoidCallback? onDelete}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -117,7 +120,27 @@ class SavedPlacesScreen extends ConsumerWidget {
             ),
           ),
           if (isAdded)
-            Icon(Icons.more_vert, color: AppColors.textSecondary),
+            PopupMenuButton(
+              icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+              color: AppColors.bgSurface,
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      SizedBox(width: 12),
+                      Text('Remove', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'delete' && onDelete != null) {
+                  onDelete();
+                }
+              },
+            ),
         ],
       ),
     );

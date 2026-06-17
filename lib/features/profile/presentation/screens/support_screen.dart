@@ -42,10 +42,22 @@ class SupportScreen extends StatelessWidget {
           const SizedBox(height: 32),
           const Text('Common Issues', style: AppTextStyles.sectionTitle),
           const SizedBox(height: 16),
-          _buildFaqItem('I lost an item in my ride'),
-          _buildFaqItem('My driver was unprofessional'),
-          _buildFaqItem('I was overcharged'),
-          _buildFaqItem('Payment failed but money deducted'),
+          _FaqItem(
+            title: 'I lost an item in my ride',
+            answer: 'Please contact the driver directly using the call button in your ride history. If you are unable to reach them, you can contact our support team with your ride details.',
+          ),
+          _FaqItem(
+            title: 'My driver was unprofessional',
+            answer: 'We take professionalism very seriously. Please provide specific feedback in the ride history section so we can take appropriate action.',
+          ),
+          _FaqItem(
+            title: 'I was overcharged',
+            answer: 'If your final fare was higher than expected, it could be due to tolls, wait time, or route changes. If you believe there is an error, please share the ride details.',
+          ),
+          _FaqItem(
+            title: 'Payment failed but money deducted',
+            answer: 'Failed payments are usually refunded automatically within 5-7 business days. If you do not receive the refund by then, please contact your bank.',
+          ),
           const SizedBox(height: 32),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -68,22 +80,59 @@ class SupportScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildFaqItem(String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: AppTextStyles.bodyMedium),
-          Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 16),
-        ],
+class _FaqItem extends StatefulWidget {
+  final String title;
+  final String answer;
+
+  const _FaqItem({required this.title, required this.answer});
+
+  @override
+  State<_FaqItem> createState() => _FaqItemState();
+}
+
+class _FaqItemState extends State<_FaqItem> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(child: Text(widget.title, style: AppTextStyles.bodyMedium)),
+                Icon(
+                  _isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
+            if (_isExpanded) ...[
+              const SizedBox(height: 12),
+              Divider(color: AppColors.border),
+              const SizedBox(height: 12),
+              Text(widget.answer, style: AppTextStyles.body),
+            ]
+          ],
+        ),
       ),
     );
   }
