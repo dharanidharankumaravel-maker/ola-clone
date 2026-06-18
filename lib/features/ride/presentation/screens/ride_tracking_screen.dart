@@ -269,6 +269,11 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
             actions: [
               TextButton(
                 onPressed: () {
+                  // Reset booking state before navigating home
+                  ref.read(locationProvider.notifier).clearDestination();
+                  ref.read(selectedRideTypeProvider.notifier).update(null);
+                  ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                  
                   Navigator.pop(ctx);
                   context.go('/');
                 },
@@ -287,12 +292,15 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
 
     String ghostAsset = 'assets/ghost_car.png';
     IconData fallbackIcon = Icons.directions_car;
-    if (isParcel) {
+    if (isParcel || rideType == 'parcel') {
       ghostAsset = 'assets/ghost_parcel_delivery.png';
       fallbackIcon = Icons.inventory_2_outlined;
     } else if (rideType == 'bike' || rideType == 'scooter') {
       ghostAsset = 'assets/ghost bike.png';
       fallbackIcon = Icons.motorcycle;
+    } else if (rideType == 'auto') {
+      ghostAsset = 'assets/ghost_auto.png';
+      fallbackIcon = Icons.electric_rickshaw;
     }
     
     String getStatusLabel(String s) {

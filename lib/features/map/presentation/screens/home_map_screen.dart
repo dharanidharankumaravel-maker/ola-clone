@@ -14,6 +14,8 @@ import '../../../ride/presentation/providers/ride_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'package:flutter_animate/flutter_animate.dart';
+
 class HomeMapScreen extends ConsumerStatefulWidget {
   const HomeMapScreen({super.key});
 
@@ -27,9 +29,39 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
   bool _hasCentered = false;
   Timer? _debounceTimer;
   bool _isFetchingReverseGeocode = false;
-  int _bottomNavIndex = 0;
   String _selectedHomeCategory = 'Daily';
   bool _isDragging = false;
+  bool _highlightDestination = false;
+
+  void _triggerDestinationPrompt(String categoryName) {
+    if (ref.read(locationProvider).destination == null) {
+      setState(() {
+        _highlightDestination = true;
+      });
+      
+      // Auto-open the destination search screen (or parcel) to save a click
+      if (categoryName == 'Parcel') {
+        context.push('/parcel');
+      } else {
+        context.push('/destination-search', extra: false);
+      }
+      
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _highlightDestination = false;
+          });
+        }
+      });
+    } else {
+      // Destination is already set, so tapping the vehicle should take us to confirmation!
+      if (categoryName == 'Parcel') {
+        context.push('/parcel');
+      } else {
+        context.push('/ride-selection');
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -39,6 +71,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocationAsync = ref.watch(locationStreamProvider);
     final locationState = ref.watch(locationProvider);
     final currentPickup = locationState.pickup;
@@ -60,34 +93,6 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
       key: _scaffoldKey,
       backgroundColor: AppColors.bgSurface,
       drawer: _buildDrawer(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomNavIndex,
-        onTap: (index) {
-          setState(() => _bottomNavIndex = index);
-          if (index == 0) {
-            // Already on home
-          } else if (index == 1) {
-            context.push('/parcel');
-            // reset index so when we come back it's still 0
-            setState(() => _bottomNavIndex = 0);
-          } else if (index == 2) {
-            context.push('/quick-book');
-            setState(() => _bottomNavIndex = 0);
-          } else if (index == 3) {
-            context.push('/schedule-ride');
-            setState(() => _bottomNavIndex = 0);
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryGreen,
-        unselectedItemColor: AppColors.textSecondary,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Parcel'),
-          BottomNavigationBarItem(icon: Icon(Icons.flash_on), label: 'Quickbook'),
-          BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedule'),
-        ],
-      ),
       body: Stack(
         children: [
           // 1. The Map
@@ -310,105 +315,123 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                   controller: scrollController,
                   padding: const EdgeInsets.all(24),
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (currentPickup == null && currentLocationAsync.value != null) {
-                          ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
-                        }
-                        
-                        switch (_selectedHomeCategory) {
-                          case 'Daily':
-                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                            ref.read(selectedRideTypeProvider.notifier).update(null);
-                            break;
-                          case 'Bike':
-                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                            ref.read(selectedRideTypeProvider.notifier).update('bike');
-                            break;
-                          case 'Auto':
-                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                            ref.read(selectedRideTypeProvider.notifier).update('auto');
-                            break;
-                          case 'Scooter':
-                            ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                            ref.read(selectedRideTypeProvider.notifier).update('scooter');
-                            break;
-                          case 'Rentals':
-                            ref.read(selectedRideCategoryProvider.notifier).update('rentals');
-                            ref.read(selectedRideTypeProvider.notifier).update(null);
-                            break;
-                          case 'Outstation':
-                            ref.read(selectedRideCategoryProvider.notifier).update('outstation');
-                            ref.read(selectedRideTypeProvider.notifier).update(null);
-                            break;
-                          case 'Parcel':
-                            ref.read(selectedRideCategoryProvider.notifier).update('parcel');
-                            ref.read(selectedRideTypeProvider.notifier).update(null);
-                            break;
-                        }
-                        
-                        if (_selectedHomeCategory == 'Parcel') {
-                          context.push('/parcel');
-                        } else {
-                          context.push('/destination-search', extra: false);
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        decoration: BoxDecoration(
-                          color: AppColors.bgSurface,
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: AppColors.primaryGreen, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryGreen.withOpacity(0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                    Animate(
+                      key: ValueKey(_highlightDestination),
+                      effects: _highlightDestination ? [
+                        const ShakeEffect(duration: Duration(milliseconds: 500), hz: 6),
+                        const ScaleEffect(duration: Duration(milliseconds: 150), begin: Offset(1.0, 1.0), end: Offset(1.02, 1.02)),
+                      ] : [],
+                      child: GestureDetector(
+                        onTap: () {
+                          if (currentPickup == null && currentLocationAsync.value != null) {
+                            ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
+                          }
+                          
+                          switch (_selectedHomeCategory) {
+                            case 'Daily':
+                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                              ref.read(selectedRideTypeProvider.notifier).update(null);
+                              break;
+                            case 'Bike':
+                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                              ref.read(selectedRideTypeProvider.notifier).update('bike');
+                              break;
+                            case 'Auto':
+                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                              ref.read(selectedRideTypeProvider.notifier).update('auto');
+                              break;
+                            case 'Scooter':
+                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
+                              ref.read(selectedRideTypeProvider.notifier).update('scooter');
+                              break;
+                            case 'Rentals':
+                              ref.read(selectedRideCategoryProvider.notifier).update('rentals');
+                              ref.read(selectedRideTypeProvider.notifier).update(null);
+                              break;
+                            case 'Outstation':
+                              ref.read(selectedRideCategoryProvider.notifier).update('outstation');
+                              ref.read(selectedRideTypeProvider.notifier).update(null);
+                              break;
+                            case 'Parcel':
+                              ref.read(selectedRideCategoryProvider.notifier).update('parcel');
+                              ref.read(selectedRideTypeProvider.notifier).update(null);
+                              break;
+                          }
+                          
+                          if (_selectedHomeCategory == 'Parcel') {
+                            context.push('/parcel');
+                          } else {
+                            context.push('/destination-search', extra: false);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: AppColors.bgSurface,
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                              color: _highlightDestination ? AppColors.accentOrange : AppColors.primaryGreen, 
+                              width: _highlightDestination ? 2.5 : 1.5
                             ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.search, color: AppColors.textPrimary),
-                            const SizedBox(width: 12),
-                            Text('Enter Destination', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: (_highlightDestination ? AppColors.accentOrange : AppColors.primaryGreen).withOpacity(_highlightDestination ? 0.3 : 0.1),
+                                blurRadius: _highlightDestination ? 12 : 4,
+                                spreadRadius: _highlightDestination ? 2 : 0,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search, color: AppColors.textPrimary),
+                              const SizedBox(width: 12),
+                              Text('Enter Destination', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-
+  
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          _buildCategory('assets/mini.png', Icons.directions_car, 'Daily', isSelected: _selectedHomeCategory == 'Daily', onTap: () {
+                          _buildCategory('assets/daily.png', Icons.directions_car, 'Daily', isSelected: _selectedHomeCategory == 'Daily', onTap: () {
                             setState(() => _selectedHomeCategory = 'Daily');
+                            _triggerDestinationPrompt('Daily');
                           }),
-                          _buildCategory('assets/bike.png', Icons.motorcycle, 'Bike', isSelected: _selectedHomeCategory == 'Bike', onTap: () {
+                          _buildCategory('assets/bike_icon.png', Icons.motorcycle, 'Bike', isSelected: _selectedHomeCategory == 'Bike', onTap: () {
                             setState(() => _selectedHomeCategory = 'Bike');
+                            _triggerDestinationPrompt('Bike');
                           }),
-                          _buildCategory('assets/auto.png', Icons.electric_rickshaw, 'Auto', isSelected: _selectedHomeCategory == 'Auto', onTap: () {
+                          _buildCategory('assets/auto_icon.png', Icons.electric_rickshaw, 'Auto', isSelected: _selectedHomeCategory == 'Auto', onTap: () {
                             setState(() => _selectedHomeCategory = 'Auto');
+                            _triggerDestinationPrompt('Auto');
                           }),
-                          _buildCategory('assets/scooter.png', Icons.moped, 'Scooter', isSelected: _selectedHomeCategory == 'Scooter', onTap: () {
+                          _buildCategory('assets/scooter_icon.png', Icons.moped, 'Scooter', isSelected: _selectedHomeCategory == 'Scooter', onTap: () {
                             setState(() => _selectedHomeCategory = 'Scooter');
+                            _triggerDestinationPrompt('Scooter');
                           }),
-                          _buildCategory('assets/rentals.png', Icons.key, 'Rentals', isSelected: _selectedHomeCategory == 'Rentals', onTap: () {
+                          _buildCategory('assets/rental_icon.png', Icons.key, 'Rentals', isSelected: _selectedHomeCategory == 'Rentals', onTap: () {
                             setState(() => _selectedHomeCategory = 'Rentals');
+                            _triggerDestinationPrompt('Rentals');
                           }),
-                          _buildCategory('assets/outstation.png', Icons.map_outlined, 'Outstation', isSelected: _selectedHomeCategory == 'Outstation', onTap: () {
+                          _buildCategory('assets/outstation_icon.png', Icons.map_outlined, 'Outstation', isSelected: _selectedHomeCategory == 'Outstation', onTap: () {
                             setState(() => _selectedHomeCategory = 'Outstation');
+                            _triggerDestinationPrompt('Outstation');
                           }),
                           _buildCategory('assets/parcel.svg', Icons.inventory_2_outlined, 'Parcel', isSelected: _selectedHomeCategory == 'Parcel', onTap: () {
                             setState(() => _selectedHomeCategory = 'Parcel');
+                            _triggerDestinationPrompt('Parcel');
                           }),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-
+  
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       alignment: Alignment.center,
@@ -421,6 +444,40 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         ),
                       ),
                     ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/ola_banner.jpg',
+                        width: double.infinity,
+                        height: 250,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/ola_on_the_move.jpg',
+                        width: double.infinity,
+                        height: 250,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.center,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/ola_ride_save.png',
+                        width: double.infinity,
+                        fit: BoxFit.fitWidth,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               );
@@ -454,31 +511,48 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
   }
 
   Widget _buildCategory(String imagePath, IconData icon, String label, {required bool isSelected, required VoidCallback onTap}) {
+    final double imageScale;
+    if (label == 'Parcel') {
+      imageScale = 0.8;
+    } else {
+      imageScale = 1.0;
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(right: 16),
+        margin: const EdgeInsets.only(right: 12),
         width: 72,
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primaryGreenLight.withOpacity(0.3) : AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border, width: isSelected ? 2 : 1),
               ),
-              child: imagePath.endsWith('.svg') 
-                  ? SvgPicture.asset(imagePath, width: 32, height: 32)
-                  : (imagePath.isNotEmpty 
-                      ? Image.asset(
+              child: Center(
+                child: Transform.scale(
+                  scale: imageScale,
+                  alignment: Alignment.center,
+                  child: imagePath.endsWith('.svg') 
+                      ? SvgPicture.asset(
                           imagePath, 
-                          width: 32, 
-                          height: 32, 
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Icon(icon, size: 32, color: AppColors.textSecondary),
+                          alignment: Alignment.center,
                         )
-                      : Icon(icon, size: 32, color: AppColors.textSecondary)),
+                      : (imagePath.isNotEmpty 
+                          ? Image.asset(
+                              imagePath, 
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                              errorBuilder: (context, error, stackTrace) => Icon(icon, size: 36, color: AppColors.textSecondary),
+                            )
+                          : Icon(icon, size: 36, color: AppColors.textSecondary)),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             Text(label, style: AppTextStyles.caption.copyWith(

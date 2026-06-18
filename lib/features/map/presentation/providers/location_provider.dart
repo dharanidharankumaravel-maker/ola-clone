@@ -151,6 +151,10 @@ class LocationNotifier extends Notifier<LocationState> {
     state = state.copyWith(destination: location);
   }
   
+  void clearDestination() {
+    state = LocationState(pickup: state.pickup, destination: null);
+  }
+  
   void clear() {
     state = const LocationState();
   }

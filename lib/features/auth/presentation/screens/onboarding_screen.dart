@@ -31,10 +31,15 @@ class OnboardingScreen extends StatelessWidget {
                         height: illustrationHeight,
                         width: double.infinity,
                         child: Image.asset(
-                          'assets/splash_illustration.png',
+                          'assets/app_icon.png',
                           width: double.infinity,
                           fit: BoxFit.contain,
                           alignment: Alignment.bottomCenter,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.local_taxi,
+                            size: 120,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),

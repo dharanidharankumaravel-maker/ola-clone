@@ -145,13 +145,15 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
     double distanceFare = _distanceKm * 15;
     double totalFare = baseFare + distanceFare;
 
+    const iconPath = 'assets/parcel.svg';
+
     // Provide the dynamic option
     ref.read(rideOptionsProvider.notifier).update([
       RideOption(
         type: 'parcel',
         name: 'Alo Parcel',
         description: 'Package delivery service',
-        icon: 'assets/bike.png', // Or a parcel icon
+        icon: iconPath,
         seats: 1,
         available: true,
         eta: 5,

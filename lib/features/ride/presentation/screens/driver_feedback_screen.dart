@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../map/presentation/providers/location_provider.dart';
 import '../providers/ride_provider.dart';
 
 class DriverFeedbackScreen extends ConsumerStatefulWidget {
@@ -90,6 +91,11 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
         fareEstimate: updatedFareEstimate,
       ));
       ref.read(currentRideProvider.notifier).clearCurrentRide();
+      
+      // Reset the booking state for the next ride
+      ref.read(locationProvider.notifier).clearDestination();
+      ref.read(selectedRideTypeProvider.notifier).update(null);
+      ref.read(selectedRideCategoryProvider.notifier).update('daily'); // Reset to default home category
     }
     
     ScaffoldMessenger.of(context).showSnackBar(

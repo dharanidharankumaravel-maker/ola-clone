@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/ride_option.dart';
 import '../../domain/entities/ride.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 
 class RideOptionsNotifier extends Notifier<List<RideOption>> {
@@ -98,11 +99,28 @@ final currentRideProvider = NotifierProvider<CurrentRideNotifier, Ride?>(() {
 });
 
 class RideHistoryNotifier extends Notifier<List<Ride>> {
+  static final Map<String, List<Ride>> _persistedHistories = {};
+
   @override
-  List<Ride> build() => [];
+  List<Ride> build() {
+    final userAsync = ref.watch(authProvider);
+    final user = userAsync.value;
+    if (user == null || user.phone.isEmpty) {
+      return [];
+    }
+    return _persistedHistories[user.phone] ?? [];
+  }
   
   void addRide(Ride ride) {
-    state = [ride, ...state];
+    final user = ref.read(authProvider).value;
+    if (user != null && user.phone.isNotEmpty) {
+      final currentList = _persistedHistories[user.phone] ?? [];
+      final newList = [ride, ...currentList];
+      _persistedHistories[user.phone] = newList;
+      state = newList;
+    } else {
+      state = [ride, ...state];
+    }
   }
 }
 

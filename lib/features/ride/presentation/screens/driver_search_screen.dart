@@ -163,12 +163,15 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
     
     String ghostAsset = 'assets/ghost_car.png';
     IconData fallbackIcon = Icons.directions_car;
-    if (category == 'parcel') {
+    if (category == 'parcel' || rideType == 'parcel') {
       ghostAsset = 'assets/ghost_parcel_delivery.png';
       fallbackIcon = Icons.inventory_2_outlined;
     } else if (rideType == 'bike' || rideType == 'scooter') {
       ghostAsset = 'assets/ghost bike.png';
       fallbackIcon = Icons.motorcycle;
+    } else if (rideType == 'auto') {
+      ghostAsset = 'assets/ghost_auto.png';
+      fallbackIcon = Icons.electric_rickshaw;
     }
 
     return Scaffold(

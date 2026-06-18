@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/otp_verification_screen.dart';
@@ -88,7 +89,7 @@ final appRouter = GoRouter(
       builder: (context, state) => const RideSelectionScreen(),
     ),
     GoRoute(
-      path: '/schedule-ride',
+      path: '/schedule-ride-booking',
       builder: (context, state) => const ScheduleRideScreen(),
     ),
     GoRoute(
@@ -114,10 +115,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
-    ),
-    GoRoute(
-      path: '/parcel',
-      builder: (context, state) => const ParcelScreen(),
     ),
     GoRoute(
       path: '/parcel-details',
@@ -150,19 +147,177 @@ final appRouter = GoRouter(
       path: '/ride/:id',
       builder: (context, state) {
         final rideId = state.pathParameters['id'];
-        // In a real app, we'd fetch the ride details using this ID.
-        // For now, we'll just redirect to the ride tracking screen if there's a current ride,
-        // or to home if not.
         return const RideTrackingScreen();
       },
     ),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const HomeMapScreen(),
-    ),
-    GoRoute(
-      path: '/quick-book',
-      builder: (context, state) => const QuickBookScreen(),
+    ShellRoute(
+      builder: (context, state, child) {
+        return MainShellScaffold(state: state, child: child);
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const HomeMapScreen(),
+        ),
+        GoRoute(
+          path: '/parcel',
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const ParcelScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(0.0, 1.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOut)),
+                ),
+                child: child,
+              );
+            },
+          ),
+        ),
+        GoRoute(
+          path: '/quick-book',
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const QuickBookScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(0.0, 1.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOut)),
+                ),
+                child: child,
+              );
+            },
+          ),
+        ),
+        GoRoute(
+          path: '/schedule-ride',
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            child: const ScheduleRideScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(0.0, 1.0),
+                    end: Offset.zero,
+                  ).chain(CurveTween(curve: Curves.easeOut)),
+                ),
+                child: child,
+              );
+            },
+          ),
+        ),
+      ],
     ),
   ],
 );
+
+class MainShellScaffold extends StatelessWidget {
+  final GoRouterState state;
+  final Widget child;
+
+  const MainShellScaffold({
+    super.key,
+    required this.state,
+    required this.child,
+  });
+
+  int _getSelectedIndex(String path) {
+    if (path == '/') return 0;
+    if (path.startsWith('/parcel')) return 1;
+    if (path.startsWith('/quick-book')) return 2;
+    if (path.startsWith('/schedule-ride')) return 3;
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final path = state.uri.path;
+    final selectedIndex = _getSelectedIndex(path);
+
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        onTap: (index) {
+          if (index == 0) {
+            context.go('/');
+          } else if (index == 1) {
+            context.go('/parcel');
+          } else if (index == 2) {
+            context.go('/quick-book');
+          } else if (index == 3) {
+            context.go('/schedule-ride');
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppColors.primaryGreen,
+        unselectedItemColor: AppColors.textSecondary,
+        items: [
+          const BottomNavigationBarItem(
+            icon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.home_outlined, size: 24),
+            ),
+            activeIcon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.home, size: 24),
+            ),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Transform.scale(
+                scale: 1.4, // Visually enlarges without expanding layout footprint
+                child: Image.asset(
+                  'assets/scooter_white_parcel.png',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                  color: selectedIndex == 1 ? AppColors.primaryGreen : AppColors.textSecondary,
+                ),
+              ),
+            ),
+            label: 'Parcel',
+          ),
+          const BottomNavigationBarItem(
+            icon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.bolt_outlined, size: 24),
+            ),
+            activeIcon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.bolt, size: 24),
+            ),
+            label: 'Quickbook',
+          ),
+          const BottomNavigationBarItem(
+            icon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.calendar_month_outlined, size: 24),
+            ),
+            activeIcon: SizedBox(
+              width: 24,
+              height: 24,
+              child: Icon(Icons.calendar_month, size: 24),
+            ),
+            label: 'Schedule',
+          ),
+        ],
+      ),
+    );
+  }
+}

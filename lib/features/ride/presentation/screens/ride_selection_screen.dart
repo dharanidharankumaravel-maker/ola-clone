@@ -124,7 +124,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'micro',
             name: 'Alo Micro',
             description: 'Compact hatchbacks, pocket-friendly',
-            icon: 'assets/micro.png',
+            icon: 'assets/micro_icon.png',
             seats: 4,
             available: true,
             eta: 3,
@@ -143,7 +143,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'mini',
             name: 'Alo Mini',
             description: 'Comfy, economical hatchbacks',
-            icon: 'assets/mini.png',
+            icon: 'assets/mini_icon.png',
             seats: 4,
             available: true,
             eta: 3,
@@ -162,7 +162,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'prime',
             name: 'Prime Sedan',
             description: 'Spacious, top-rated sedans',
-            icon: 'assets/prime.png',
+            icon: 'assets/prime_sedan_icon.png',
             seats: 4,
             available: true,
             eta: 5,
@@ -200,7 +200,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'auto',
             name: 'Alo Auto',
             description: 'Auto rickshaw at your doorstep',
-            icon: 'assets/auto.png',
+            icon: 'assets/auto_icon.png',
             seats: 3,
             available: true,
             eta: 4,
@@ -219,7 +219,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'bike',
             name: 'Alo Bike',
             description: 'Quick and economical bike rides',
-            icon: 'assets/bike.png',
+            icon: 'assets/bike_icon.png',
             seats: 1,
             available: true,
             eta: 2,
@@ -238,7 +238,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'scooter',
             name: 'Alo Scooter',
             description: 'Beat the traffic on a scooter',
-            icon: 'assets/scooter.png',
+            icon: 'assets/scooter_icon.png',
             seats: 1,
             available: true,
             eta: 3,
@@ -263,7 +263,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_micro',
             name: 'Rentals Micro',
             description: '1 Hr • 10 Km Package',
-            icon: 'assets/micro.png',
+            icon: 'assets/micro_icon.png',
             seats: 4,
             available: true,
             eta: 5,
@@ -282,7 +282,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_mini',
             name: 'Rentals Mini',
             description: '2 Hr • 20 Km Package',
-            icon: 'assets/mini.png',
+            icon: 'assets/mini_icon.png',
             seats: 4,
             available: true,
             eta: 4,
@@ -301,7 +301,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'rentals_prime',
             name: 'Rentals Sedan',
             description: '4 Hr • 40 Km Package',
-            icon: 'assets/prime.png',
+            icon: 'assets/prime_sedan_icon.png',
             seats: 4,
             available: true,
             eta: 6,
@@ -345,7 +345,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'outstation_mini',
             name: 'Outstation Mini',
             description: 'Intercity hatchback, pocket-friendly',
-            icon: 'assets/mini.png',
+            icon: 'assets/mini_icon.png',
             seats: 4,
             available: true,
             eta: 15,
@@ -364,7 +364,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             type: 'outstation_prime',
             name: 'Outstation Sedan',
             description: 'Comfortable sedan for long journeys',
-            icon: 'assets/prime.png',
+            icon: 'assets/prime_sedan_icon.png',
             seats: 4,
             available: true,
             eta: 12,
@@ -416,9 +416,11 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
         
         final existingType = ref.read(selectedRideTypeProvider);
         if (existingType != null && existingType.isNotEmpty) {
-          final filtered = options.where((o) => o.type == existingType).toList();
-          if (filtered.isNotEmpty) {
-            ref.read(rideOptionsProvider.notifier).update(filtered);
+          final selectedIndex = options.indexWhere((o) => o.type == existingType);
+          if (selectedIndex != -1) {
+            final selectedOption = options.removeAt(selectedIndex);
+            options.insert(0, selectedOption);
+            ref.read(rideOptionsProvider.notifier).update(options);
             ref.read(isEstimatingProvider.notifier).update(false);
             return;
           }
@@ -664,6 +666,9 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                               itemBuilder: (context, index) {
                                 final option = rideOptions.length == 1 ? rideOptions[0] : filteredOptions[index];
                                 final isSelected = selectedRideType == option.type;
+                                
+                                String resolvedIcon = option.icon;
+
                                 return GestureDetector(
                                   onTap: () {
                                     HapticFeedback.lightImpact();
@@ -678,21 +683,21 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                                     ),
                                     child: Row(
                                       children: [
-                                        option.icon.endsWith('.svg')
+                                        resolvedIcon.endsWith('.svg')
                                             ? SvgPicture.asset(
-                                                option.icon,
-                                                width: 50,
-                                                height: 36,
+                                                resolvedIcon,
+                                                width: 64,
+                                                height: 48,
                                                 fit: BoxFit.contain,
                                               )
                                             : Image.asset(
-                                                option.icon,
-                                                width: 50,
-                                                height: 36,
+                                                resolvedIcon,
+                                                width: 64,
+                                                height: 48,
                                                 fit: BoxFit.contain,
                                                 errorBuilder: (context, error, stackTrace) => Icon(
                                                   Icons.directions_car,
-                                                  size: 36,
+                                                  size: 48,
                                                   color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
                                                 ),
                                               ),
@@ -814,7 +819,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () => context.push('/schedule-ride'),
+                              onTap: () => context.push('/schedule-ride-booking'),
                               child: Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
