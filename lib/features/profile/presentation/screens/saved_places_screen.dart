@@ -17,15 +17,28 @@ class SavedPlacesScreen extends ConsumerWidget {
     final workPlace = savedPlaces.where((p) => p.title.toLowerCase() == 'work').firstOrNull;
     final otherPlaces = savedPlaces.where((p) => p.title.toLowerCase() != 'home' && p.title.toLowerCase() != 'work').toList();
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: const Text('Saved Places', style: AppTextStyles.h3),
       ),
       body: ListView(
@@ -87,7 +100,7 @@ class SavedPlacesScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildSavedPlace({required String title, required String subtitle, required IconData icon, required bool isAdded, VoidCallback? onDelete}) {

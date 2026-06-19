@@ -37,31 +37,47 @@ class _ParcelScreenState extends ConsumerState<ParcelScreen> {
   Widget build(BuildContext context) {
     final parcelFlowType = ref.watch(parcelFlowTypeProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: parcelFlowType == null && context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          if (parcelFlowType != null) {
+            ref.read(parcelFlowTypeProvider.notifier).update(null);
+          } else {
+            context.go('/');
+          }
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () {
-            if (parcelFlowType != null) {
-              ref.read(parcelFlowTypeProvider.notifier).update(null);
-            } else {
-              context.pop();
-            }
-          },
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (parcelFlowType != null) {
+                ref.read(parcelFlowTypeProvider.notifier).update(null);
+              } else {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              }
+            },
+          ),
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('ALO ', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w900)),
+              Text('PARCEL', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.normal)),
+            ],
+          ),
+          centerTitle: true,
         ),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('ALO ', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.w900)),
-            Text('PARCEL', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.normal)),
-          ],
-        ),
-        centerTitle: true,
+        body: parcelFlowType == null ? _buildSelectionMode(context, ref) : _buildAddressSelectionMode(context, ref, parcelFlowType),
       ),
-      body: parcelFlowType == null ? _buildSelectionMode(context, ref) : _buildAddressSelectionMode(context, ref, parcelFlowType),
     );
   }
 

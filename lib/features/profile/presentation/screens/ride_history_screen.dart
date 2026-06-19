@@ -34,15 +34,28 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
     final pastRides = ref.watch(rideHistoryProvider);
     final upcomingRides = ref.watch(scheduledRidesProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      appBar: AppBar(
-        backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgDark,
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: const Text('Your Rides', style: AppTextStyles.h3),
         bottom: TabBar(
           controller: _tabController,
@@ -62,7 +75,7 @@ class _RideHistoryScreenState extends ConsumerState<RideHistoryScreen> with Sing
           _buildRideList(upcomingRides, isUpcoming: true),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildRideList(List<Ride> rides, {required bool isUpcoming}) {
@@ -187,7 +200,7 @@ class _ExpansionRideCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text('₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}', style: AppTextStyles.h3),
+                  Text(ride.status == 'cancelled' ? '₹0' : '₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}', style: AppTextStyles.h3),
                 ],
               ),
             ],
@@ -197,8 +210,9 @@ class _ExpansionRideCard extends StatelessWidget {
             const SizedBox(height: 12),
             _buildDetailRow('Trip ID', ride.id),
             _buildDetailRow(ride.parcelDetails != null ? 'Delivery Partner' : 'Driver Name', ride.driver?.name ?? 'N/A'),
-            _buildDetailRow('Distance Travelled', '${ride.distance.toStringAsFixed(1)} km'),
-            _buildDetailRow('Amount Paid', '₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}'),
+            if (ride.status != 'cancelled')
+              _buildDetailRow('Distance Travelled', '${ride.distance.toStringAsFixed(1)} km'),
+            _buildDetailRow('Amount Paid', ride.status == 'cancelled' ? '₹0' : '₹${(ride.fareEstimate.total + (ride.tipAmount ?? 0)).toStringAsFixed(0)}'),
             if (ride.parcelDetails != null) ...[
               _buildDetailRow('Sender', ride.parcelDetails!.senderName),
               _buildDetailRow('Receiver', ride.parcelDetails!.receiverName),

@@ -61,35 +61,9 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
     final promoDiscount = ref.read(promoDiscountProvider);
     
     if (currentRide != null) {
-      final double taxes = currentRide.fareEstimate.total * 0.05;
-      final double baseTotal = currentRide.fareEstimate.total + taxes - promoDiscount;
+      final double baseTotal = currentRide.fareEstimate.total - promoDiscount;
       final double finalFare = baseTotal + (currentRide.tipAmount ?? 0.0);
 
-      // Deduct from wallet if Ola Money was used
-      if (currentRide.paymentMethod == 'ola_money') {
-        final user = ref.read(authProvider).value;
-        if (user != null) {
-          ref.read(authProvider.notifier).updateUser(
-            user.copyWith(walletBalance: user.walletBalance - finalFare)
-          );
-        }
-        ref.read(walletTransactionProvider.notifier).addTransaction(
-          WalletTransaction(
-            id: 'tx_${DateTime.now().millisecondsSinceEpoch}',
-            amount: finalFare,
-            type: 'debit',
-            description: 'Ride to ${currentRide.destination.shortAddress}',
-            createdAt: DateTime.now(),
-          )
-        );
-      }
-
-      // Save ride to history before clearing
-      final updatedFareEstimate = currentRide.fareEstimate.copyWith(total: baseTotal);
-      ref.read(rideHistoryProvider.notifier).addRide(currentRide.copyWith(
-        status: 'completed',
-        fareEstimate: updatedFareEstimate,
-      ));
       ref.read(currentRideProvider.notifier).clearCurrentRide();
       
       // Reset the booking state for the next ride
@@ -125,18 +99,24 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
       );
     }
 
-    final double taxes = currentRide.fareEstimate.total * 0.05;
     final double tip = currentRide.tipAmount ?? 0.0;
-    final double baseTotal = currentRide.fareEstimate.total + taxes - promoDiscount;
+    final double baseTotal = currentRide.fareEstimate.total - promoDiscount;
     final double finalFare = baseTotal + tip;
     final isParcel = currentRide.rideType == 'parcel';
     final goodFeedback = isParcel ? _parcelGoodFeedback : _rideGoodFeedback;
     final badFeedback = isParcel ? _parcelBadFeedback : _rideBadFeedback;
     final chipsToDisplay = _rating > 0 && _rating < 4 ? badFeedback : goodFeedback;
 
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgDark,
+        body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -183,7 +163,6 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
                         _buildBreakdownRow('Base Fare', '₹${currentRide.fareEstimate.baseFare.toStringAsFixed(0)}'),
                         _buildBreakdownRow('Distance Charge', '₹${currentRide.fareEstimate.distanceFare.toStringAsFixed(0)}'),
                         _buildBreakdownRow('Time Charge', '₹${currentRide.fareEstimate.timeFare.toStringAsFixed(0)}'),
-                        _buildBreakdownRow('Taxes & Fees (5%)', '₹${taxes.toStringAsFixed(0)}'),
                         if (promoDiscount > 0)
                           _buildBreakdownRow('Promo Applied', '-₹${promoDiscount.toStringAsFixed(0)}', isDiscount: true),
                         if (tip > 0)
@@ -347,7 +326,7 @@ class _DriverFeedbackScreenState extends ConsumerState<DriverFeedbackScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildBreakdownRow(String label, String value, {bool isDiscount = false, bool isHighlight = false, bool isTotal = false}) {

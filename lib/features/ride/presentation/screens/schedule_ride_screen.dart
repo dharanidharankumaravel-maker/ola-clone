@@ -213,15 +213,28 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
     final pickup = locationState.pickup;
     final destination = locationState.destination;
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: Text('Schedule Ride', style: AppTextStyles.h3.copyWith(fontWeight: FontWeight.bold)),
         centerTitle: true,
         bottom: PreferredSize(
@@ -467,7 +480,7 @@ class _ScheduleRideScreenState extends ConsumerState<ScheduleRideScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTimePicker(String label, List<int> values, int selectedValue, FixedExtentScrollController controller, Function(int) onSelected) {

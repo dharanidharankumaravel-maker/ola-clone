@@ -145,6 +145,10 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                 ref.read(rideHistoryProvider.notifier).addRide(mockRide);
               }
               
+              ref.read(locationProvider.notifier).clearDestination();
+              ref.read(selectedRideTypeProvider.notifier).update(null);
+              ref.read(selectedRideCategoryProvider.notifier).update('daily');
+
               Navigator.pop(ctx);
               context.go('/');
             },
@@ -174,9 +178,16 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
       fallbackIcon = Icons.electric_rickshaw;
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleCancel();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgDark,
+        body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -361,7 +372,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildTipButton(String label, double amount) {

@@ -159,8 +159,10 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                             point: LatLng(car.latitude, car.longitude),
                             width: 32,
                             height: 32,
-                            child: Transform.rotate(
-                              angle: car.heading * 3.14159 / 180,
+                            child: AnimatedRotation(
+                              turns: car.heading / 360,
+                              duration: const Duration(seconds: 3),
+                              curve: Curves.linear,
                               child: Image.asset('assets/car_top.png', 
                                 errorBuilder: (_,__,___) => Icon(Icons.directions_car, color: AppColors.textSecondary, size: 24),
                               ),

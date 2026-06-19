@@ -290,11 +290,18 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isVerifying = authState.isLoading;
-    final maskedPhone = widget.phone.replaceAll(RegExp(r'\+91(\d{5})(\d{5})'), '+91 *****\$2');
+    final maskedPhone = widget.phone.length > 5 ? '+91 *****${widget.phone.substring(widget.phone.length - 5)}' : widget.phone;
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      body: SafeArea(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/login');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgSurface,
+        body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
           child: Column(
@@ -302,7 +309,13 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
             children: [
               // Clean Back Button with container/hover effect style
               GestureDetector(
-                onTap: () => context.pop(),
+                onTap: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/login');
+                  }
+                },
                 child: Container(
                   width: 44,
                   height: 44,
@@ -409,7 +422,13 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
               
               Center(
                 child: GestureDetector(
-                  onTap: () => context.pop(),
+                  onTap: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/login');
+                    }
+                  },
                   child: Text(
                     'Change mobile number',
                     style: AppTextStyles.bodyMedium.copyWith(
@@ -425,6 +444,6 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

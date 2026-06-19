@@ -476,9 +476,16 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
       });
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      body: Stack(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgSurface,
+        body: Stack(
         children: [
           FlutterMap(
             mapController: _mapController,
@@ -528,7 +535,13 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
             child: GestureDetector(
-              onTap: () => context.pop(),
+              onTap: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
               child: Container(
                 width: 40,
                 height: 40,
@@ -855,7 +868,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
         ).animate().slideY(begin: 1, end: 0, duration: 400.ms, curve: Curves.easeOutQuart),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildPaymentOption(BuildContext context, WidgetRef ref, String id, String title, IconData icon, Color color) {

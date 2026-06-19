@@ -70,8 +70,15 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
   Widget build(BuildContext context) {
     final locationAsync = ref.watch(locationStreamProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgDark,
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgDark,
       body: SafeArea(
         child: Stack(
           children: [
@@ -117,7 +124,13 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
                   children: [
                     IconButton(
                       icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                      onPressed: () => context.pop(),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/');
+                        }
+                      },
                     ),
                     Expanded(
                       child: TextField(
@@ -274,6 +287,6 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

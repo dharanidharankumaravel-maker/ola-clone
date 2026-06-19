@@ -98,8 +98,8 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       setState(() => _isConfirming = false);
-      // Pushing to driver search will simulate matching.
-      context.push('/driver-search');
+      ref.read(paymentMethodProvider.notifier).update(_selectedPayment);
+      context.pop();
     });
   }
 
@@ -112,15 +112,28 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
     final selectedOption = rideOptions.where((o) => o.type == selectedRideType).firstOrNull;
     final finalFare = _getFinalFare();
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: Text('Payment Method', style: AppTextStyles.h3),
         centerTitle: true,
         bottom: PreferredSize(
@@ -344,7 +357,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
               children: [
                 Expanded(
                   child: PrimaryButton(
-                    text: 'Confirm Booking',
+                    text: 'Save Changes',
                     onPressed: _handleConfirm,
                     isLoading: _isConfirming,
                   ),
@@ -354,7 +367,7 @@ class _PaymentMethodScreenState extends ConsumerState<PaymentMethodScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildQuickSelect(String label, String value) {

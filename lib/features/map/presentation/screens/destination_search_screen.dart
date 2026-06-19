@@ -145,24 +145,37 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
   Widget build(BuildContext context) {
     final currentLocationAsync = ref.watch(currentLocationProvider);
     
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: AppColors.border)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                    onPressed: () => context.pop(),
-                  ),
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.bgSurface,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: AppColors.border)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/');
+                        }
+                      },
+                    ),
                   Expanded(
                     child: Column(
                       children: [
@@ -349,6 +362,6 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
           ],
         ),
       ),
-    );
+    ));
   }
 }

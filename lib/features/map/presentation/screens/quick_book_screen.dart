@@ -341,7 +341,13 @@ class _QuickBookScreenState extends ConsumerState<QuickBookScreen> {
                 children: [
                   Row(
                     children: [
-                      Text(place.title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                      Flexible(
+                        child: Text(
+                          place.title, 
+                          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -450,15 +456,28 @@ class _QuickBookScreenState extends ConsumerState<QuickBookScreen> {
     
     final currentPickup = locationState.pickup ?? currentLocationAsync.value;
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: Text('Quick Book', style: AppTextStyles.h2.copyWith(fontWeight: FontWeight.bold)),
         centerTitle: true,
         bottom: PreferredSize(
@@ -604,7 +623,7 @@ class _QuickBookScreenState extends ConsumerState<QuickBookScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -44,6 +45,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
   double _simulationProgress = 0.0;
   int _tickCount = 0;
   bool _isDetailsCollapsed = false;
+  double _selectedTip = 0.0;
 
   @override
   void initState() {
@@ -104,10 +106,26 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
             }
           }
           
+          double heading = currentRide.driver!.heading;
+          if (nextPoint.latitude != currentRide.driver!.latitude || nextPoint.longitude != currentRide.driver!.longitude) {
+            final startLat = currentRide.driver!.latitude * (math.pi / 180.0);
+            final startLng = currentRide.driver!.longitude * (math.pi / 180.0);
+            final endLat = nextPoint.latitude * (math.pi / 180.0);
+            final endLng = nextPoint.longitude * (math.pi / 180.0);
+
+            final dLng = endLng - startLng;
+            final y = math.sin(dLng) * math.cos(endLat);
+            final x = math.cos(startLat) * math.sin(endLat) -
+                math.sin(startLat) * math.cos(endLat) * math.cos(dLng);
+            final bearing = math.atan2(y, x) * (180.0 / math.pi);
+            heading = (bearing + 360.0) % 360.0;
+          }
+
           final updatedRide = currentRide.copyWith(
             driver: currentRide.driver!.copyWith(
               latitude: nextPoint.latitude,
               longitude: nextPoint.longitude,
+              heading: heading,
             )
           );
           ref.read(currentRideProvider.notifier).setCurrentRide(updatedRide);
@@ -218,10 +236,10 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildTipButton('₹10'),
-              _buildTipButton('₹20'),
-              _buildTipButton('₹50'),
-              _buildTipButton('Other'),
+              _buildTipButton('₹10', 10.0),
+              _buildTipButton('₹20', 20.0),
+              _buildTipButton('₹50', 50.0),
+              _buildTipButton('None', 0.0),
             ],
           ),
         ],
@@ -229,21 +247,33 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     );
   }
 
-  Widget _buildTipButton(String amount) {
+  Widget _buildTipButton(String label, double amount) {
+    final isSelected = _selectedTip == amount;
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Tip of $amount added to your ride!')),
-        );
+        setState(() {
+          _selectedTip = amount;
+        });
+        
+        final currentRide = ref.read(currentRideProvider);
+        if (currentRide != null) {
+           ref.read(currentRideProvider.notifier).setCurrentRide(currentRide.copyWith(tipAmount: amount));
+        }
+
+        if (amount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Tip of ₹${amount.toInt()} added to your ride!'), duration: const Duration(seconds: 1)),
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.bgCard,
-          border: Border.all(color: AppColors.border),
+          color: isSelected ? AppColors.primaryGreen : AppColors.bgSurface,
+          border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Text(amount, style: AppTextStyles.bodyMedium),
+        child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: isSelected ? Colors.white : AppColors.textPrimary)),
       ),
     );
   }
@@ -258,7 +288,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
 
     ref.listen(currentRideProvider, (previous, next) {
       if (next?.status == 'completed') {
-        context.go('/driver-feedback');
+        context.go('/trip-payment');
       } else if (next?.status == 'cancelled') {
         showDialog(
           context: context,

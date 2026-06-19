@@ -171,7 +171,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
     ]);
 
     ref.read(selectedRideTypeProvider.notifier).update('parcel');
-    context.push('/payment-method');
+    context.push('/driver-search');
   }
 
   @override
@@ -180,15 +180,28 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
     double distanceFare = _distanceKm * 15;
     double totalFare = baseFare + distanceFare;
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: Text('Parcel Details', style: AppTextStyles.h3),
         centerTitle: true,
       ),
@@ -366,7 +379,7 @@ class _ParcelDetailsScreenState extends ConsumerState<ParcelDetailsScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTextField({

@@ -23,6 +23,7 @@ import '../../features/ride/presentation/screens/driver_feedback_screen.dart';
 
 import '../../features/auth/presentation/screens/onboarding_screen.dart';
 import '../../features/profile/presentation/screens/ride_history_screen.dart';
+import '../../features/ride/presentation/screens/trip_payment_screen.dart';
 import '../../features/profile/presentation/screens/saved_places_screen.dart';
 import '../../features/profile/presentation/screens/support_screen.dart';
 import '../../features/profile/presentation/screens/settings_screen.dart';
@@ -55,10 +56,6 @@ final appRouter = GoRouter(
         final isNewUser = state.extra as bool? ?? true;
         return ProfileSetupScreen(isNewUser: isNewUser);
       },
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/destination-search',
@@ -139,6 +136,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const RideTrackingScreen(),
     ),
     GoRoute(
+      path: '/trip-payment',
+      builder: (context, state) => const TripPaymentScreen(),
+    ),
+    GoRoute(
       path: '/driver-feedback',
       builder: (context, state) => const DriverFeedbackScreen(),
     ),
@@ -196,10 +197,10 @@ final appRouter = GoRouter(
           ),
         ),
         GoRoute(
-          path: '/schedule-ride',
+          path: '/profile',
           pageBuilder: (context, state) => CustomTransitionPage<void>(
             key: state.pageKey,
-            child: const ScheduleRideScreen(),
+            child: const ProfileScreen(),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return SlideTransition(
                 position: animation.drive(
@@ -232,7 +233,7 @@ class MainShellScaffold extends StatelessWidget {
     if (path == '/') return 0;
     if (path.startsWith('/parcel')) return 1;
     if (path.startsWith('/quick-book')) return 2;
-    if (path.startsWith('/schedule-ride')) return 3;
+    if (path.startsWith('/profile')) return 3;
     return 0;
   }
 
@@ -241,10 +242,19 @@ class MainShellScaffold extends StatelessWidget {
     final path = state.uri.path;
     final selectedIndex = _getSelectedIndex(path);
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
+    return PopScope(
+      canPop: path == '/',
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (!didPop) {
+          if (path != '/') {
+            context.go('/');
+          }
+        }
+      },
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: selectedIndex,
         onTap: (index) {
           if (index == 0) {
             context.go('/');
@@ -253,7 +263,7 @@ class MainShellScaffold extends StatelessWidget {
           } else if (index == 2) {
             context.go('/quick-book');
           } else if (index == 3) {
-            context.go('/schedule-ride');
+            context.go('/profile');
           }
         },
         type: BottomNavigationBarType.fixed,
@@ -307,17 +317,17 @@ class MainShellScaffold extends StatelessWidget {
             icon: SizedBox(
               width: 24,
               height: 24,
-              child: Icon(Icons.calendar_month_outlined, size: 24),
+              child: Icon(Icons.person_outline, size: 24),
             ),
             activeIcon: SizedBox(
               width: 24,
               height: 24,
-              child: Icon(Icons.calendar_month, size: 24),
+              child: Icon(Icons.person, size: 24),
             ),
-            label: 'Schedule',
+            label: 'Profile',
           ),
         ],
       ),
-    );
+    ));
   }
 }

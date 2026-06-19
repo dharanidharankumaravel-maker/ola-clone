@@ -65,15 +65,28 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     final balance = user?.walletBalance ?? 500.0; // using 500.0 if not logged in just to show UI
     final transactions = ref.watch(walletTransactionProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.bgSurface,
-      appBar: AppBar(
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          context.go('/');
+        }
+      },
+      child: Scaffold(
         backgroundColor: AppColors.bgSurface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
-        ),
+        appBar: AppBar(
+          backgroundColor: AppColors.bgSurface,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
         title: Text('Alo Money', style: AppTextStyles.h3),
         centerTitle: true,
         bottom: PreferredSize(
@@ -204,6 +217,6 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
           const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
         ],
       ),
-    );
+    ));
   }
 }
