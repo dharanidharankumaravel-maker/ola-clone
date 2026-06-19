@@ -406,28 +406,54 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
         final hasRentals = options.any((o) => o.type.startsWith('rentals_'));
         final hasOutstation = options.any((o) => o.type.startsWith('outstation_'));
         
-        if (existingCategory == 'outstation' && !hasOutstation) {
-          ref.read(selectedRideCategoryProvider.notifier).update(hasDaily ? 'daily' : (hasRentals ? 'rentals' : 'daily'));
-        } else if (existingCategory == 'rentals' && !hasRentals) {
-          ref.read(selectedRideCategoryProvider.notifier).update(hasDaily ? 'daily' : (hasOutstation ? 'outstation' : 'daily'));
-        } else if (existingCategory == 'daily' && !hasDaily) {
-          ref.read(selectedRideCategoryProvider.notifier).update(hasOutstation ? 'outstation' : (hasRentals ? 'rentals' : 'outstation'));
+        String activeCategory = existingCategory;
+        if (activeCategory == 'outstation' && !hasOutstation) {
+          activeCategory = hasDaily ? 'daily' : (hasRentals ? 'rentals' : 'daily');
+          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+        } else if (activeCategory == 'rentals' && !hasRentals) {
+          activeCategory = hasDaily ? 'daily' : (hasOutstation ? 'outstation' : 'daily');
+          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+        } else if (activeCategory == 'daily' && !hasDaily) {
+          activeCategory = hasOutstation ? 'outstation' : (hasRentals ? 'rentals' : 'outstation');
+          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
         }
         
-        final existingType = ref.read(selectedRideTypeProvider);
-        if (existingType != null && existingType.isNotEmpty) {
-          final selectedIndex = options.indexWhere((o) => o.type == existingType);
-          if (selectedIndex != -1) {
-            final selectedOption = options.removeAt(selectedIndex);
-            options.insert(0, selectedOption);
-            ref.read(rideOptionsProvider.notifier).update(options);
-            ref.read(isEstimatingProvider.notifier).update(false);
-            return;
+        // Find existing selected type
+        String? targetType = ref.read(selectedRideTypeProvider);
+        
+        // Check if targetType matches the active category
+        bool isValidForCategory = false;
+        if (targetType != null && targetType.isNotEmpty) {
+          if (activeCategory == 'rentals') {
+            isValidForCategory = targetType.startsWith('rentals_');
+          } else if (activeCategory == 'outstation') {
+            isValidForCategory = targetType.startsWith('outstation_');
+          } else if (activeCategory == 'daily') {
+            isValidForCategory = !targetType.startsWith('rentals_') && !targetType.startsWith('outstation_') && targetType != 'parcel';
           }
         }
         
+        if (!isValidForCategory) {
+          RideOption? defaultOption;
+          if (activeCategory == 'rentals') {
+            defaultOption = options.firstWhere((o) => o.type.startsWith('rentals_'), orElse: () => options[0]);
+          } else if (activeCategory == 'outstation') {
+            defaultOption = options.firstWhere((o) => o.type.startsWith('outstation_'), orElse: () => options[0]);
+          } else {
+            defaultOption = options.firstWhere((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel', orElse: () => options[0]);
+          }
+          targetType = defaultOption.type;
+        }
+        
+        // Bubble the resolved type to index 0 of options so it displays first on the booking page
+        final selectedIndex = options.indexWhere((o) => o.type == targetType);
+        if (selectedIndex != -1) {
+          final selectedOption = options.removeAt(selectedIndex);
+          options.insert(0, selectedOption);
+        }
+        
         ref.read(rideOptionsProvider.notifier).update(options);
-        ref.read(selectedRideTypeProvider.notifier).update(options[0].type);
+        ref.read(selectedRideTypeProvider.notifier).update(targetType);
         ref.read(isEstimatingProvider.notifier).update(false);
       });
   }

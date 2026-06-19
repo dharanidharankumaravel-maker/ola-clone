@@ -361,7 +361,7 @@ class _DriverSearchScreenState extends ConsumerState<DriverSearchScreen> with Si
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.cancel_outlined, color: AppColors.danger, size: 18),
+                      Icon(Icons.cancel_outlined, color: AppColors.danger, size: 18),
                       const SizedBox(width: 8),
                       Text('Cancel Ride', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger, fontWeight: FontWeight.bold)),
                     ],

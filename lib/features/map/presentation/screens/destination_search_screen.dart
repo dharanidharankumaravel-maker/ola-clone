@@ -144,6 +144,7 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
   @override
   Widget build(BuildContext context) {
     final currentLocationAsync = ref.watch(currentLocationProvider);
+    final savedPlaces = ref.watch(savedPlacesProvider);
     
     return PopScope(
       canPop: context.canPop(),
@@ -304,6 +305,29 @@ class _DestinationSearchScreenState extends ConsumerState<DestinationSearchScree
                               }
                             },
                           ),
+                        ...savedPlaces.map((place) {
+                          final isHome = place.title.toLowerCase() == 'home';
+                          final isWork = place.title.toLowerCase() == 'work';
+                          final icon = isHome 
+                              ? Icons.home_outlined 
+                              : (isWork ? Icons.work_outline_rounded : Icons.bookmark_outline_rounded);
+                          final iconColor = isHome 
+                              ? Colors.green 
+                              : (isWork ? Colors.blue : Colors.purple);
+                          return ListTile(
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: iconColor.withOpacity(0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(icon, color: iconColor, size: 20),
+                            ),
+                            title: Text(place.title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                            subtitle: Text(place.subtitle ?? '', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                            onTap: () => _handleSelectPlace(place.location),
+                          );
+                        }),
                         // Saved places or recent searches can go here
                         ListTile(
                           leading: Icon(Icons.history, color: AppColors.textSecondary),

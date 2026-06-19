@@ -208,13 +208,23 @@ class _QuickBookScreenState extends ConsumerState<QuickBookScreen> {
             icon: Icons.home_rounded,
             label: hasHome ? 'Go Home' : 'Set Home',
             color: Colors.green,
-            onTap: () {
+            onTap: () async {
               if (hasHome) {
                 _handleSelectDestination(homePlace.location);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please add your Home location in Saved Places first.')),
-                );
+                final result = await context.push<AppLocation>('/map-picker');
+                if (result != null && mounted) {
+                  ref.read(savedPlacesProvider.notifier).addPlace(
+                    SavedPlace(
+                      title: 'Home',
+                      subtitle: result.formattedAddress,
+                      location: result,
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: const Text('Home address saved!'), backgroundColor: AppColors.primaryGreen),
+                  );
+                }
               }
             },
           ),
@@ -222,13 +232,23 @@ class _QuickBookScreenState extends ConsumerState<QuickBookScreen> {
             icon: Icons.work_rounded,
             label: hasWork ? 'Go Work' : 'Set Work',
             color: Colors.blue,
-            onTap: () {
+            onTap: () async {
               if (hasWork) {
                 _handleSelectDestination(workPlace.location);
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please add your Work location in Saved Places first.')),
-                );
+                final result = await context.push<AppLocation>('/map-picker');
+                if (result != null && mounted) {
+                  ref.read(savedPlacesProvider.notifier).addPlace(
+                    SavedPlace(
+                      title: 'Work',
+                      subtitle: result.formattedAddress,
+                      location: result,
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: const Text('Work address saved!'), backgroundColor: AppColors.primaryGreen),
+                  );
+                }
               }
             },
           ),

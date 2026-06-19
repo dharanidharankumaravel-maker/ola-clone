@@ -67,12 +67,12 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E28),
+              color: AppColors.bgCard,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white12, width: 1),
+              border: Border.all(color: AppColors.border, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -97,10 +97,10 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'MESSAGES',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: AppColors.textSecondary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1,
@@ -118,8 +118,8 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
                       const SizedBox(height: 2),
                       Text(
                         'Your Alo verification code is $otp. Do not share this with anyone.',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -160,12 +160,12 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF2C1E21),
+              color: AppColors.isDark ? const Color(0xFF2C1E21) : const Color(0xFFFDE8E8),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.danger.withOpacity(0.3), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -175,14 +175,14 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: AppColors.danger,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.error_outline, color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -196,11 +196,11 @@ class _OTPVerificationScreenState extends ConsumerState<OTPVerificationScreen> {
                           letterSpacing: 1,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         'Incorrect OTP. Please check the code and try again.',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),

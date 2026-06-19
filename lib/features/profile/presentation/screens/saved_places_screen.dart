@@ -50,6 +50,21 @@ class SavedPlacesScreen extends ConsumerWidget {
             icon: Icons.home_outlined,
             isAdded: homePlace != null,
             onDelete: homePlace != null ? () => ref.read(savedPlacesProvider.notifier).removePlace(homePlace) : null,
+            onTap: () async {
+              final result = await context.push<AppLocation>('/map-picker');
+              if (result != null) {
+                ref.read(savedPlacesProvider.notifier).addPlace(
+                  SavedPlace(
+                    title: 'Home',
+                    subtitle: result.formattedAddress,
+                    location: result,
+                  ),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: const Text('Home address updated!'), backgroundColor: AppColors.primaryGreen),
+                );
+              }
+            },
           ),
           const SizedBox(height: 16),
           _buildSavedPlace(
@@ -58,6 +73,21 @@ class SavedPlacesScreen extends ConsumerWidget {
             icon: Icons.work_outline,
             isAdded: workPlace != null,
             onDelete: workPlace != null ? () => ref.read(savedPlacesProvider.notifier).removePlace(workPlace) : null,
+            onTap: () async {
+              final result = await context.push<AppLocation>('/map-picker');
+              if (result != null) {
+                ref.read(savedPlacesProvider.notifier).addPlace(
+                  SavedPlace(
+                    title: 'Work',
+                    subtitle: result.formattedAddress,
+                    location: result,
+                  ),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: const Text('Work address updated!'), backgroundColor: AppColors.primaryGreen),
+                );
+              }
+            },
           ),
           const SizedBox(height: 24),
           const Text('Other Places', style: AppTextStyles.sectionTitle),
@@ -71,6 +101,21 @@ class SavedPlacesScreen extends ConsumerWidget {
               icon: Icons.location_on_outlined,
               isAdded: true,
               onDelete: () => ref.read(savedPlacesProvider.notifier).removePlace(p),
+              onTap: () async {
+                final result = await context.push<AppLocation>('/map-picker');
+                if (result != null) {
+                  ref.read(savedPlacesProvider.notifier).addPlace(
+                    SavedPlace(
+                      title: p.title,
+                      subtitle: result.formattedAddress,
+                      location: result,
+                    ),
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${p.title} address updated!'), backgroundColor: AppColors.primaryGreen),
+                  );
+                }
+              },
             ),
           )),
           
@@ -103,58 +148,69 @@ class SavedPlacesScreen extends ConsumerWidget {
     ));
   }
 
-  Widget _buildSavedPlace({required String title, required String subtitle, required IconData icon, required bool isAdded, VoidCallback? onDelete}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.bgCard,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.bgSurface,
-              shape: BoxShape.circle,
+  Widget _buildSavedPlace({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool isAdded,
+    VoidCallback? onDelete,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.bgCard,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.bgSurface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.textPrimary, size: 24),
             ),
-            child: Icon(icon, color: AppColors.textPrimary, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: AppTextStyles.caption.copyWith(color: isAdded ? AppColors.textSecondary : AppColors.primaryGreen)),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: AppTextStyles.caption.copyWith(color: isAdded ? AppColors.textSecondary : AppColors.primaryGreen)),
+                ],
+              ),
             ),
-          ),
-          if (isAdded)
-            PopupMenuButton(
-              icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
-              color: AppColors.bgSurface,
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                      SizedBox(width: 12),
-                      Text('Remove', style: TextStyle(color: Colors.red)),
-                    ],
+            if (isAdded)
+              PopupMenuButton(
+                icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+                color: AppColors.bgSurface,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                        SizedBox(width: 12),
+                        Text('Remove', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-              onSelected: (value) {
-                if (value == 'delete' && onDelete != null) {
-                  onDelete();
-                }
-              },
-            ),
-        ],
+                ],
+                onSelected: (value) {
+                  if (value == 'delete' && onDelete != null) {
+                    onDelete();
+                  }
+                },
+              ),
+          ],
+        ),
       ),
     );
   }

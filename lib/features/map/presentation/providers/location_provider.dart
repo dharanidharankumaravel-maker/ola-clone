@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../domain/entities/app_location.dart';
+import '../../../../core/storage/storage_provider.dart';
+import 'dart:convert';
 
 final currentLocationProvider = FutureProvider<AppLocation?>((ref) async {
   bool serviceEnabled;
@@ -173,26 +174,64 @@ class SavedPlace {
 }
 
 class SavedPlacesNotifier extends Notifier<List<SavedPlace>> {
+  static const String _savedPlacesKey = '@ola:saved_places';
+
   @override
-  List<SavedPlace> build() => [
-    SavedPlace(
-      title: 'Work',
-      subtitle: 'Tech Park, OMR, Chennai',
-      location: const AppLocation(
-        latitude: 12.9716,
-        longitude: 80.2536,
-        shortAddress: 'Tech Park',
-        formattedAddress: 'Tech Park, OMR, Chennai',
-      ),
-    ),
-  ];
+  List<SavedPlace> build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final savedPlacesJson = prefs.getStringList(_savedPlacesKey);
+    if (savedPlacesJson == null) {
+      final defaultList = [
+        SavedPlace(
+          title: 'Work',
+          subtitle: 'Tech Park, OMR, Chennai',
+          location: const AppLocation(
+            latitude: 12.9716,
+            longitude: 80.2536,
+            shortAddress: 'Tech Park',
+            formattedAddress: 'Tech Park, OMR, Chennai',
+          ),
+        ),
+      ];
+      _saveToPrefs(defaultList);
+      return defaultList;
+    }
+    
+    try {
+      return savedPlacesJson.map((jsonStr) {
+        final Map<String, dynamic> data = jsonDecode(jsonStr);
+        return SavedPlace(
+          title: data['title'] as String,
+          subtitle: data['subtitle'] as String?,
+          location: AppLocation.fromJson(data['location'] as Map<String, dynamic>),
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  void _saveToPrefs(List<SavedPlace> list) {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final jsonList = list.map((p) => jsonEncode({
+      'title': p.title,
+      'subtitle': p.subtitle,
+      'location': p.location.toJson(),
+    })).toList();
+    prefs.setStringList(_savedPlacesKey, jsonList);
+  }
 
   void addPlace(SavedPlace place) {
-    state = [...state, place];
+    final filtered = state.where((p) => p.title.toLowerCase() != place.title.toLowerCase()).toList();
+    final newList = [...filtered, place];
+    state = newList;
+    _saveToPrefs(newList);
   }
 
   void removePlace(SavedPlace place) {
-    state = state.where((p) => p != place).toList();
+    final newList = state.where((p) => p != place).toList();
+    state = newList;
+    _saveToPrefs(newList);
   }
 
   bool isSaved(AppLocation location) {

@@ -29,9 +29,41 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
   bool _hasCentered = false;
   Timer? _debounceTimer;
   bool _isFetchingReverseGeocode = false;
-  String _selectedHomeCategory = 'Daily';
   bool _isDragging = false;
   bool _highlightDestination = false;
+
+  void _updateHomeCategory(String categoryName) {
+    switch (categoryName) {
+      case 'Daily':
+        ref.read(selectedRideCategoryProvider.notifier).update('daily');
+        ref.read(selectedRideTypeProvider.notifier).update(null);
+        break;
+      case 'Bike':
+        ref.read(selectedRideCategoryProvider.notifier).update('daily');
+        ref.read(selectedRideTypeProvider.notifier).update('bike');
+        break;
+      case 'Auto':
+        ref.read(selectedRideCategoryProvider.notifier).update('daily');
+        ref.read(selectedRideTypeProvider.notifier).update('auto');
+        break;
+      case 'Scooter':
+        ref.read(selectedRideCategoryProvider.notifier).update('daily');
+        ref.read(selectedRideTypeProvider.notifier).update('scooter');
+        break;
+      case 'Rentals':
+        ref.read(selectedRideCategoryProvider.notifier).update('rentals');
+        ref.read(selectedRideTypeProvider.notifier).update(null);
+        break;
+      case 'Outstation':
+        ref.read(selectedRideCategoryProvider.notifier).update('outstation');
+        ref.read(selectedRideTypeProvider.notifier).update(null);
+        break;
+      case 'Parcel':
+        ref.read(selectedRideCategoryProvider.notifier).update('parcel');
+        ref.read(selectedRideTypeProvider.notifier).update(null);
+        break;
+    }
+  }
 
   void _triggerDestinationPrompt(String categoryName) {
     if (ref.read(locationProvider).destination == null) {
@@ -71,10 +103,31 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentLocationAsync = ref.watch(locationStreamProvider);
     final locationState = ref.watch(locationProvider);
     final currentPickup = locationState.pickup;
+
+    final selectedCategory = ref.watch(selectedRideCategoryProvider);
+    final selectedType = ref.watch(selectedRideTypeProvider);
+
+    String homeCategory = 'Daily';
+    if (selectedCategory == 'rentals') {
+      homeCategory = 'Rentals';
+    } else if (selectedCategory == 'outstation') {
+      homeCategory = 'Outstation';
+    } else if (selectedCategory == 'parcel') {
+      homeCategory = 'Parcel';
+    } else if (selectedCategory == 'daily') {
+      if (selectedType == 'bike') {
+        homeCategory = 'Bike';
+      } else if (selectedType == 'auto') {
+        homeCategory = 'Auto';
+      } else if (selectedType == 'scooter') {
+        homeCategory = 'Scooter';
+      } else {
+        homeCategory = 'Daily';
+      }
+    }
 
     // Center camera on first location update
     currentLocationAsync.whenData((location) {
@@ -329,38 +382,9 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                             ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
                           }
                           
-                          switch (_selectedHomeCategory) {
-                            case 'Daily':
-                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                              ref.read(selectedRideTypeProvider.notifier).update(null);
-                              break;
-                            case 'Bike':
-                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                              ref.read(selectedRideTypeProvider.notifier).update('bike');
-                              break;
-                            case 'Auto':
-                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                              ref.read(selectedRideTypeProvider.notifier).update('auto');
-                              break;
-                            case 'Scooter':
-                              ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                              ref.read(selectedRideTypeProvider.notifier).update('scooter');
-                              break;
-                            case 'Rentals':
-                              ref.read(selectedRideCategoryProvider.notifier).update('rentals');
-                              ref.read(selectedRideTypeProvider.notifier).update(null);
-                              break;
-                            case 'Outstation':
-                              ref.read(selectedRideCategoryProvider.notifier).update('outstation');
-                              ref.read(selectedRideTypeProvider.notifier).update(null);
-                              break;
-                            case 'Parcel':
-                              ref.read(selectedRideCategoryProvider.notifier).update('parcel');
-                              ref.read(selectedRideTypeProvider.notifier).update(null);
-                              break;
-                          }
+                          _updateHomeCategory(homeCategory);
                           
-                          if (_selectedHomeCategory == 'Parcel') {
+                          if (homeCategory == 'Parcel') {
                             context.push('/parcel');
                           } else {
                             context.push('/destination-search', extra: false);
@@ -401,32 +425,32 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          _buildCategory('assets/daily.png', Icons.directions_car, 'Daily', isSelected: _selectedHomeCategory == 'Daily', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Daily');
+                          _buildCategory('assets/daily.png', Icons.directions_car, 'Daily', isSelected: homeCategory == 'Daily', onTap: () {
+                            _updateHomeCategory('Daily');
                             _triggerDestinationPrompt('Daily');
                           }),
-                          _buildCategory('assets/bike_icon.png', Icons.motorcycle, 'Bike', isSelected: _selectedHomeCategory == 'Bike', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Bike');
+                          _buildCategory('assets/bike_icon.png', Icons.motorcycle, 'Bike', isSelected: homeCategory == 'Bike', onTap: () {
+                            _updateHomeCategory('Bike');
                             _triggerDestinationPrompt('Bike');
                           }),
-                          _buildCategory('assets/auto_icon.png', Icons.electric_rickshaw, 'Auto', isSelected: _selectedHomeCategory == 'Auto', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Auto');
+                          _buildCategory('assets/auto_icon.png', Icons.electric_rickshaw, 'Auto', isSelected: homeCategory == 'Auto', onTap: () {
+                            _updateHomeCategory('Auto');
                             _triggerDestinationPrompt('Auto');
                           }),
-                          _buildCategory('assets/scooter_icon.png', Icons.moped, 'Scooter', isSelected: _selectedHomeCategory == 'Scooter', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Scooter');
+                          _buildCategory('assets/scooter_icon.png', Icons.moped, 'Scooter', isSelected: homeCategory == 'Scooter', onTap: () {
+                            _updateHomeCategory('Scooter');
                             _triggerDestinationPrompt('Scooter');
                           }),
-                          _buildCategory('assets/rental_icon.png', Icons.key, 'Rentals', isSelected: _selectedHomeCategory == 'Rentals', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Rentals');
+                          _buildCategory('assets/rental_icon.png', Icons.key, 'Rentals', isSelected: homeCategory == 'Rentals', onTap: () {
+                            _updateHomeCategory('Rentals');
                             _triggerDestinationPrompt('Rentals');
                           }),
-                          _buildCategory('assets/outstation_icon.png', Icons.map_outlined, 'Outstation', isSelected: _selectedHomeCategory == 'Outstation', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Outstation');
+                          _buildCategory('assets/outstation_icon.png', Icons.map_outlined, 'Outstation', isSelected: homeCategory == 'Outstation', onTap: () {
+                            _updateHomeCategory('Outstation');
                             _triggerDestinationPrompt('Outstation');
                           }),
-                          _buildCategory('assets/parcel.svg', Icons.inventory_2_outlined, 'Parcel', isSelected: _selectedHomeCategory == 'Parcel', onTap: () {
-                            setState(() => _selectedHomeCategory = 'Parcel');
+                          _buildCategory('assets/parcel.svg', Icons.inventory_2_outlined, 'Parcel', isSelected: homeCategory == 'Parcel', onTap: () {
+                            _updateHomeCategory('Parcel');
                             _triggerDestinationPrompt('Parcel');
                           }),
                         ],

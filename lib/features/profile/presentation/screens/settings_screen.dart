@@ -138,7 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 );
               },
-              child: const Text('Delete Account', style: TextStyle(color: AppColors.danger)),
+              child: Text('Delete Account', style: TextStyle(color: AppColors.danger)),
             ),
           )
         ],

@@ -186,7 +186,7 @@ class _ExpansionRideCard extends StatelessWidget {
                     children: [
                       Icon(Icons.circle, size: 12, color: AppColors.primaryGreen),
                       Container(height: 20, width: 2, color: AppColors.border),
-                      const Icon(Icons.location_on_outlined, size: 14, color: AppColors.danger),
+                      Icon(Icons.location_on_outlined, size: 14, color: AppColors.danger),
                     ],
                   ),
                   const SizedBox(width: 12),

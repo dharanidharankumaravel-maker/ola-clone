@@ -294,7 +294,7 @@ class ProfileScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.logout, color: AppColors.danger, size: 20),
+                    Icon(Icons.logout, color: AppColors.danger, size: 20),
                     const SizedBox(width: 8),
                     Text('Log Out', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.danger)),
                   ],

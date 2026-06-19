@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -12,7 +13,7 @@ class OnboardingScreen extends StatelessWidget {
     final illustrationHeight = (screenHeight * 0.45).clamp(180.0, 380.0);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         top: false,
         child: LayoutBuilder(
@@ -51,7 +52,7 @@ class OnboardingScreen extends StatelessWidget {
                           style: GoogleFonts.caveat(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: AppColors.textPrimary,
                             height: 1.2,
                           ),
                         ),
@@ -67,8 +68,8 @@ class OnboardingScreen extends StatelessWidget {
                           children: [
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF1E1E1E),
-                                foregroundColor: Colors.white,
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 minimumSize: const Size(double.infinity, 54),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -98,7 +99,7 @@ class OnboardingScreen extends StatelessWidget {
                               text: TextSpan(
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
-                                  color: Colors.black54,
+                                  color: AppColors.textSecondary,
                                   height: 1.5,
                                 ),
                                 children: [
