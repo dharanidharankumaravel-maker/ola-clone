@@ -97,7 +97,7 @@ class _MapPickerScreenState extends ConsumerState<MapPickerScreen> {
                   ),
                   children: [
                     TileLayer(
-                      urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                      urlTemplate: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_2ugb_1_4b8aaeb78ca6b499d5d80e85',
                       userAgentPackageName: 'com.ola.customer',
                     ),
                   ],

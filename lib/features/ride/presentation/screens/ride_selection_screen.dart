@@ -18,7 +18,8 @@ class RideSelectionScreen extends ConsumerStatefulWidget {
   const RideSelectionScreen({super.key});
 
   @override
-  ConsumerState<RideSelectionScreen> createState() => _RideSelectionScreenState();
+  ConsumerState<RideSelectionScreen> createState() =>
+      _RideSelectionScreenState();
 }
 
 class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
@@ -26,23 +27,29 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
   List<LatLng> _routePoints = [];
   void _selectCategory(String category, List<RideOption> allOptions) {
     ref.read(selectedRideCategoryProvider.notifier).update(category);
-    
+
     final filtered = allOptions.where((option) {
       if (category == 'rentals') {
         return option.type.startsWith('rentals_');
       } else if (category == 'outstation') {
         return option.type.startsWith('outstation_');
       } else {
-        return !option.type.startsWith('rentals_') && !option.type.startsWith('outstation_');
+        return !option.type.startsWith('rentals_') &&
+            !option.type.startsWith('outstation_');
       }
     }).toList();
-    
+
     if (filtered.isNotEmpty) {
       ref.read(selectedRideTypeProvider.notifier).update(filtered[0].type);
     }
   }
 
-  Widget _buildCategoryTab(String title, String category, List<RideOption> allOptions, String selectedCategory) {
+  Widget _buildCategoryTab(
+    String title,
+    String category,
+    List<RideOption> allOptions,
+    String selectedCategory,
+  ) {
     final isSelected = selectedCategory == category;
     return GestureDetector(
       onTap: () {
@@ -65,7 +72,9 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           title,
           style: AppTextStyles.bodyMedium.copyWith(
             fontWeight: FontWeight.bold,
-            color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+            color: isSelected
+                ? AppColors.primaryGreen
+                : AppColors.textSecondary,
           ),
         ),
       ),
@@ -75,7 +84,9 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
   void _fitMapToRoute() {
     if (_routePoints.isNotEmpty) {
       final bounds = LatLngBounds.fromPoints(_routePoints);
-      _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+      _mapController.fitCamera(
+        CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+      );
     }
   }
 
@@ -94,15 +105,19 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           _routePoints = points;
         });
         _fitMapToRoute();
-        
+
         // Dynamic fare calculation
         double totalMeters = 0;
         final distanceCalc = const Distance();
         for (int i = 0; i < points.length - 1; i++) {
-          totalMeters += distanceCalc.distance(points[i], points[i+1]);
+          totalMeters += distanceCalc.distance(points[i], points[i + 1]);
         }
         // Increase raw polyline distance slightly to account for real road curves if straight line
-        final double distanceKm = (totalMeters > 0 ? (totalMeters * 1.2) / 1000 : 5.2).clamp(1.0, 500.0);
+        final double distanceKm =
+            (totalMeters > 0 ? (totalMeters * 1.2) / 1000 : 5.2).clamp(
+              1.0,
+              500.0,
+            );
         final int durationMins = (distanceKm * 3.5).ceil();
 
         _generateDynamicOptions(distanceKm, durationMins);
@@ -117,7 +132,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       final options = <RideOption>[];
-      
+
       if (distance < 100) {
         options.addAll([
           RideOption(
@@ -255,7 +270,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           ),
         ]);
       }
-          
+
       // Rentals options
       if (distance < 50) {
         options.addAll([
@@ -337,7 +352,7 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           ),
         ]);
       }
-          
+
       // Outstation options
       if (distance >= 40) {
         options.addAll([
@@ -400,62 +415,90 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
           ),
         ]);
       }
-        
-        final existingCategory = ref.read(selectedRideCategoryProvider);
-        final hasDaily = options.any((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel');
-        final hasRentals = options.any((o) => o.type.startsWith('rentals_'));
-        final hasOutstation = options.any((o) => o.type.startsWith('outstation_'));
-        
-        String activeCategory = existingCategory;
-        if (activeCategory == 'outstation' && !hasOutstation) {
-          activeCategory = hasDaily ? 'daily' : (hasRentals ? 'rentals' : 'daily');
-          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
-        } else if (activeCategory == 'rentals' && !hasRentals) {
-          activeCategory = hasDaily ? 'daily' : (hasOutstation ? 'outstation' : 'daily');
-          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
-        } else if (activeCategory == 'daily' && !hasDaily) {
-          activeCategory = hasOutstation ? 'outstation' : (hasRentals ? 'rentals' : 'outstation');
-          ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+
+      final existingCategory = ref.read(selectedRideCategoryProvider);
+      final hasDaily = options.any(
+        (o) =>
+            !o.type.startsWith('rentals_') &&
+            !o.type.startsWith('outstation_') &&
+            o.type != 'parcel',
+      );
+      final hasRentals = options.any((o) => o.type.startsWith('rentals_'));
+      final hasOutstation = options.any(
+        (o) => o.type.startsWith('outstation_'),
+      );
+
+      String activeCategory = existingCategory;
+      if (activeCategory == 'outstation' && !hasOutstation) {
+        activeCategory = hasDaily
+            ? 'daily'
+            : (hasRentals ? 'rentals' : 'daily');
+        ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+      } else if (activeCategory == 'rentals' && !hasRentals) {
+        activeCategory = hasDaily
+            ? 'daily'
+            : (hasOutstation ? 'outstation' : 'daily');
+        ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+      } else if (activeCategory == 'daily' && !hasDaily) {
+        activeCategory = hasOutstation
+            ? 'outstation'
+            : (hasRentals ? 'rentals' : 'outstation');
+        ref.read(selectedRideCategoryProvider.notifier).update(activeCategory);
+      }
+
+      // Find existing selected type
+      String? targetType = ref.read(selectedRideTypeProvider);
+
+      // Check if targetType matches the active category
+      bool isValidForCategory = false;
+      if (targetType != null && targetType.isNotEmpty) {
+        if (activeCategory == 'rentals') {
+          isValidForCategory = targetType.startsWith('rentals_');
+        } else if (activeCategory == 'outstation') {
+          isValidForCategory = targetType.startsWith('outstation_');
+        } else if (activeCategory == 'daily') {
+          isValidForCategory =
+              !targetType.startsWith('rentals_') &&
+              !targetType.startsWith('outstation_') &&
+              targetType != 'parcel';
         }
-        
-        // Find existing selected type
-        String? targetType = ref.read(selectedRideTypeProvider);
-        
-        // Check if targetType matches the active category
-        bool isValidForCategory = false;
-        if (targetType != null && targetType.isNotEmpty) {
-          if (activeCategory == 'rentals') {
-            isValidForCategory = targetType.startsWith('rentals_');
-          } else if (activeCategory == 'outstation') {
-            isValidForCategory = targetType.startsWith('outstation_');
-          } else if (activeCategory == 'daily') {
-            isValidForCategory = !targetType.startsWith('rentals_') && !targetType.startsWith('outstation_') && targetType != 'parcel';
-          }
+      }
+
+      if (!isValidForCategory) {
+        RideOption? defaultOption;
+        if (activeCategory == 'rentals') {
+          defaultOption = options.firstWhere(
+            (o) => o.type.startsWith('rentals_'),
+            orElse: () => options[0],
+          );
+        } else if (activeCategory == 'outstation') {
+          defaultOption = options.firstWhere(
+            (o) => o.type.startsWith('outstation_'),
+            orElse: () => options[0],
+          );
+        } else {
+          defaultOption = options.firstWhere(
+            (o) =>
+                !o.type.startsWith('rentals_') &&
+                !o.type.startsWith('outstation_') &&
+                o.type != 'parcel',
+            orElse: () => options[0],
+          );
         }
-        
-        if (!isValidForCategory) {
-          RideOption? defaultOption;
-          if (activeCategory == 'rentals') {
-            defaultOption = options.firstWhere((o) => o.type.startsWith('rentals_'), orElse: () => options[0]);
-          } else if (activeCategory == 'outstation') {
-            defaultOption = options.firstWhere((o) => o.type.startsWith('outstation_'), orElse: () => options[0]);
-          } else {
-            defaultOption = options.firstWhere((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel', orElse: () => options[0]);
-          }
-          targetType = defaultOption.type;
-        }
-        
-        // Bubble the resolved type to index 0 of options so it displays first on the booking page
-        final selectedIndex = options.indexWhere((o) => o.type == targetType);
-        if (selectedIndex != -1) {
-          final selectedOption = options.removeAt(selectedIndex);
-          options.insert(0, selectedOption);
-        }
-        
-        ref.read(rideOptionsProvider.notifier).update(options);
-        ref.read(selectedRideTypeProvider.notifier).update(targetType);
-        ref.read(isEstimatingProvider.notifier).update(false);
-      });
+        targetType = defaultOption.type;
+      }
+
+      // Bubble the resolved type to index 0 of options so it displays first on the booking page
+      final selectedIndex = options.indexWhere((o) => o.type == targetType);
+      if (selectedIndex != -1) {
+        final selectedOption = options.removeAt(selectedIndex);
+        options.insert(0, selectedOption);
+      }
+
+      ref.read(rideOptionsProvider.notifier).update(options);
+      ref.read(selectedRideTypeProvider.notifier).update(targetType);
+      ref.read(isEstimatingProvider.notifier).update(false);
+    });
   }
 
   @override
@@ -483,7 +526,8 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
       } else if (selectedCategory == 'outstation') {
         return option.type.startsWith('outstation_');
       } else {
-        return !option.type.startsWith('rentals_') && !option.type.startsWith('outstation_');
+        return !option.type.startsWith('rentals_') &&
+            !option.type.startsWith('outstation_');
       }
     }).toList();
 
@@ -497,7 +541,9 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
       ]);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
-          _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(80)));
+          _mapController.fitCamera(
+            CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(80)),
+          );
         } catch (_) {}
       });
     }
@@ -512,392 +558,688 @@ class _RideSelectionScreenState extends ConsumerState<RideSelectionScreen> {
       child: Scaffold(
         backgroundColor: AppColors.bgSurface,
         body: Stack(
-        children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: LatLng(
-                pickup?.latitude ?? 13.0827,
-                pickup?.longitude ?? 80.2707,
-              ),
-              initialZoom: 13,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.ola.customer',
-              ),
-              if (_routePoints.isNotEmpty)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: _routePoints,
-                      color: AppColors.primaryGreen,
-                      strokeWidth: 4.0,
-                    ),
-                  ],
+          children: [
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: LatLng(
+                  pickup?.latitude ?? 13.0827,
+                  pickup?.longitude ?? 80.2707,
                 ),
-              MarkerLayer(
-                markers: [
-                  if (pickup != null)
-                    Marker(
-                      point: LatLng(pickup.latitude, pickup.longitude),
-                      width: 40,
-                      height: 40,
-                      child: const Icon(Icons.location_on, color: Colors.green, size: 40),
-                    ),
-                  if (destination != null)
-                    Marker(
-                      point: LatLng(destination.latitude, destination.longitude),
-                      width: 40,
-                      height: 40,
-                      child: const Icon(Icons.location_on, color: Colors.red, size: 40),
-                    ),
-                ],
+                initialZoom: 13,
               ),
-            ],
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            left: 16,
-            child: GestureDetector(
-              onTap: () {
-                if (context.canPop()) {
-                  context.pop();
-                } else {
-                  context.go('/');
-                }
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.bgCard,
-                  shape: BoxShape.circle,
+              children: [
+                TileLayer(
+                  urlTemplate:
+                      'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_2ugb_1_4b8aaeb78ca6b499d5d80e85',
+                  userAgentPackageName: 'com.ola.customer',
                 ),
-                child: Icon(Icons.arrow_back, color: AppColors.textPrimary),
-              ),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: Builder(
-              builder: (context) {
-                final savedPlaces = ref.watch(savedPlacesProvider);
-                final locationToSave = destination;
-                final isSaved = locationToSave != null && savedPlaces.any((p) => 
-                  p.location.latitude == locationToSave.latitude && 
-                  p.location.longitude == locationToSave.longitude
-                );
-                
-                return GestureDetector(
-                  onTap: () {
-                    if (locationToSave != null) {
-                      if (isSaved) {
-                        final place = savedPlaces.firstWhere((p) => 
-                          p.location.latitude == locationToSave.latitude && 
-                          p.location.longitude == locationToSave.longitude
-                        );
-                        ref.read(savedPlacesProvider.notifier).removePlace(place);
-                      } else {
-                        ref.read(savedPlacesProvider.notifier).addPlace(
-                          SavedPlace(
-                            title: locationToSave.shortAddress ?? 'Saved Place',
-                            subtitle: locationToSave.formattedAddress,
-                            location: locationToSave,
-                          ),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Destination added to saved places!'), 
-                            backgroundColor: AppColors.primaryGreen,
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.bgCard,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isSaved ? Icons.favorite : Icons.favorite_border,
-                      color: isSaved ? Colors.red : AppColors.textPrimary,
-                    ),
+                if (_routePoints.isNotEmpty)
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: _routePoints,
+                        color: AppColors.primaryGreen,
+                        strokeWidth: 4.0,
+                      ),
+                    ],
                   ),
-                );
-              }
-            ),
-          ),
-          DraggableScrollableSheet(
-            initialChildSize: 0.5,
-            minChildSize: 0.5,
-            maxChildSize: 0.85,
-            builder: (context, scrollController) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: AppColors.bgSurface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-                      offset: const Offset(0, -4),
-                    ),
+                MarkerLayer(
+                  markers: [
+                    if (pickup != null)
+                      Marker(
+                        point: LatLng(pickup.latitude, pickup.longitude),
+                        width: 40,
+                        height: 40,
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.green,
+                          size: 40,
+                        ),
+                      ),
+                    if (destination != null)
+                      Marker(
+                        point: LatLng(
+                          destination.latitude,
+                          destination.longitude,
+                        ),
+                        width: 40,
+                        height: 40,
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                      ),
                   ],
                 ),
-                child: isEstimating
-                    ? ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
-                        itemCount: 4,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          return Container(
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: AppColors.bgCard,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ).animate(onPlay: (controller) => controller.repeat()).shimmer(duration: 1200.ms, color: AppColors.border.withOpacity(0.5));
-                        },
-                      )
-                    : Column(
-                        children: [
-                          if (rideOptions.length > 1)
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                              decoration: BoxDecoration(
-                                border: Border(bottom: BorderSide(color: AppColors.border)),
-                              ),
-                              child: Builder(
-                                builder: (context) {
-                                  final hasDaily = rideOptions.any((o) => !o.type.startsWith('rentals_') && !o.type.startsWith('outstation_') && o.type != 'parcel');
-                                  final hasRentals = rideOptions.any((o) => o.type.startsWith('rentals_'));
-                                  final hasOutstation = rideOptions.any((o) => o.type.startsWith('outstation_'));
-                                  
-                                  List<Widget> tabs = [];
-                                  if (hasDaily) tabs.add(Expanded(child: _buildCategoryTab('Daily', 'daily', rideOptions, selectedCategory)));
-                                  if (hasRentals) tabs.add(Expanded(child: _buildCategoryTab('Rentals', 'rentals', rideOptions, selectedCategory)));
-                                  if (hasOutstation) tabs.add(Expanded(child: _buildCategoryTab('Outstation', 'outstation', rideOptions, selectedCategory)));
-                                  
-                                  List<Widget> rowChildren = [];
-                                  for (int i = 0; i < tabs.length; i++) {
-                                    rowChildren.add(tabs[i]);
-                                    if (i < tabs.length - 1) rowChildren.add(const SizedBox(width: 8));
-                                  }
-                                  
-                                  return Row(children: rowChildren);
-                                }
-                              ),
-                            ),
-                          Expanded(
-                            child: ListView.separated(
-                              controller: scrollController,
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                              itemCount: rideOptions.length == 1 ? 1 : filteredOptions.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final option = rideOptions.length == 1 ? rideOptions[0] : filteredOptions[index];
-                                final isSelected = selectedRideType == option.type;
-                                
-                                String resolvedIcon = option.icon;
+              ],
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: GestureDetector(
+                onTap: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.bgCard,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                ),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 16,
+              child: Builder(
+                builder: (context) {
+                  final savedPlaces = ref.watch(savedPlacesProvider);
+                  final locationToSave = destination;
+                  final isSaved =
+                      locationToSave != null &&
+                      savedPlaces.any(
+                        (p) =>
+                            p.location.latitude == locationToSave.latitude &&
+                            p.location.longitude == locationToSave.longitude,
+                      );
 
-                                return GestureDetector(
-                                  onTap: () {
-                                    HapticFeedback.lightImpact();
-                                    ref.read(selectedRideTypeProvider.notifier).update(option.type);
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? AppColors.primaryGreenLight.withOpacity(0.3) : AppColors.bgCard,
-                                      border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border, width: 1.5),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        resolvedIcon.endsWith('.svg')
-                                            ? SvgPicture.asset(
-                                                resolvedIcon,
-                                                width: 64,
-                                                height: 48,
-                                                fit: BoxFit.contain,
-                                              )
-                                            : Image.asset(
-                                                resolvedIcon,
-                                                width: 64,
-                                                height: 48,
-                                                fit: BoxFit.contain,
-                                                errorBuilder: (context, error, stackTrace) => Icon(
-                                                  Icons.directions_car,
-                                                  size: 48,
-                                                  color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
-                                                ),
-                                              ),
-                                        const SizedBox(width: 16),
+                  return GestureDetector(
+                    onTap: () {
+                      if (locationToSave != null) {
+                        if (isSaved) {
+                          final place = savedPlaces.firstWhere(
+                            (p) =>
+                                p.location.latitude ==
+                                    locationToSave.latitude &&
+                                p.location.longitude ==
+                                    locationToSave.longitude,
+                          );
+                          ref
+                              .read(savedPlacesProvider.notifier)
+                              .removePlace(place);
+                        } else {
+                          ref
+                              .read(savedPlacesProvider.notifier)
+                              .addPlace(
+                                SavedPlace(
+                                  title:
+                                      locationToSave.shortAddress ??
+                                      'Saved Place',
+                                  subtitle: locationToSave.formattedAddress,
+                                  location: locationToSave,
+                                ),
+                              );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'Destination added to saved places!',
+                              ),
+                              backgroundColor: AppColors.primaryGreen,
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.bgCard,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isSaved ? Icons.favorite : Icons.favorite_border,
+                        color: isSaved ? Colors.red : AppColors.textPrimary,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            DraggableScrollableSheet(
+              initialChildSize: 0.5,
+              minChildSize: 0.5,
+              maxChildSize: 0.85,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.bgSurface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: isEstimating
+                      ? ListView.separated(
+                          controller: scrollController,
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
+                          itemCount: 4,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            return Container(
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.bgCard,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                )
+                                .animate(
+                                  onPlay: (controller) => controller.repeat(),
+                                )
+                                .shimmer(
+                                  duration: 1200.ms,
+                                  color: AppColors.border.withOpacity(0.5),
+                                );
+                          },
+                        )
+                      : Column(
+                          children: [
+                            if (rideOptions.length > 1)
+                              Container(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  8,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(color: AppColors.border),
+                                  ),
+                                ),
+                                child: Builder(
+                                  builder: (context) {
+                                    final hasDaily = rideOptions.any(
+                                      (o) =>
+                                          !o.type.startsWith('rentals_') &&
+                                          !o.type.startsWith('outstation_') &&
+                                          o.type != 'parcel',
+                                    );
+                                    final hasRentals = rideOptions.any(
+                                      (o) => o.type.startsWith('rentals_'),
+                                    );
+                                    final hasOutstation = rideOptions.any(
+                                      (o) => o.type.startsWith('outstation_'),
+                                    );
+
+                                    List<Widget> tabs = [];
+                                    if (hasDaily)
+                                      tabs.add(
                                         Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(option.name, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                                              const SizedBox(height: 4),
-                                              Text(option.description, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-                                            ],
+                                          child: _buildCategoryTab(
+                                            'Daily',
+                                            'daily',
+                                            rideOptions,
+                                            selectedCategory,
                                           ),
                                         ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            Row(
+                                      );
+                                    if (hasRentals)
+                                      tabs.add(
+                                        Expanded(
+                                          child: _buildCategoryTab(
+                                            'Rentals',
+                                            'rentals',
+                                            rideOptions,
+                                            selectedCategory,
+                                          ),
+                                        ),
+                                      );
+                                    if (hasOutstation)
+                                      tabs.add(
+                                        Expanded(
+                                          child: _buildCategoryTab(
+                                            'Outstation',
+                                            'outstation',
+                                            rideOptions,
+                                            selectedCategory,
+                                          ),
+                                        ),
+                                      );
+
+                                    List<Widget> rowChildren = [];
+                                    for (int i = 0; i < tabs.length; i++) {
+                                      rowChildren.add(tabs[i]);
+                                      if (i < tabs.length - 1)
+                                        rowChildren.add(
+                                          const SizedBox(width: 8),
+                                        );
+                                    }
+
+                                    return Row(children: rowChildren);
+                                  },
+                                ),
+                              ),
+                            Expanded(
+                              child: ListView.separated(
+                                controller: scrollController,
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  100,
+                                ),
+                                itemCount: rideOptions.length == 1
+                                    ? 1
+                                    : filteredOptions.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final option = rideOptions.length == 1
+                                      ? rideOptions[0]
+                                      : filteredOptions[index];
+                                  final isSelected =
+                                      selectedRideType == option.type;
+
+                                  String resolvedIcon = option.icon;
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      HapticFeedback.lightImpact();
+                                      ref
+                                          .read(
+                                            selectedRideTypeProvider.notifier,
+                                          )
+                                          .update(option.type);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primaryGreenLight
+                                                  .withOpacity(0.3)
+                                            : AppColors.bgCard,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primaryGreen
+                                              : AppColors.border,
+                                          width: 1.5,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          resolvedIcon.endsWith('.svg')
+                                              ? SvgPicture.asset(
+                                                  resolvedIcon,
+                                                  width: 64,
+                                                  height: 48,
+                                                  fit: BoxFit.contain,
+                                                )
+                                              : Image.asset(
+                                                  resolvedIcon,
+                                                  width: 64,
+                                                  height: 48,
+                                                  fit: BoxFit.contain,
+                                                  errorBuilder:
+                                                      (
+                                                        context,
+                                                        error,
+                                                        stackTrace,
+                                                      ) => Icon(
+                                                        Icons.directions_car,
+                                                        size: 48,
+                                                        color: isSelected
+                                                            ? AppColors
+                                                                  .primaryGreen
+                                                            : AppColors
+                                                                  .textSecondary,
+                                                      ),
+                                                ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Icon(Icons.person, size: 14, color: AppColors.textSecondary),
-                                                Text('${option.seats}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                                                Text(
+                                                  option.name,
+                                                  style: AppTextStyles
+                                                      .bodyMedium
+                                                      .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  option.description,
+                                                  style: AppTextStyles.caption
+                                                      .copyWith(
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                ),
                                               ],
                                             ),
-                                            Text('${option.eta} min away', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-                                            if (option.type == 'prime')
-                                              Text('Top rated', style: AppTextStyles.caption.copyWith(color: AppColors.primaryGreen)),
-                                          ],
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            Text('₹${(option.fareEstimate.total - promoDiscount).toStringAsFixed(0)}', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                                            if (promoDiscount > 0)
-                                              Text('₹${option.fareEstimate.total.toStringAsFixed(0)}', style: AppTextStyles.caption.copyWith(decoration: TextDecoration.lineThrough, color: AppColors.textSecondary)),
-                                          ],
-                                        ),
-                                      ],
+                                          ),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
+                                                  Text(
+                                                    '${option.seats}',
+                                                    style: AppTextStyles.caption
+                                                        .copyWith(
+                                                          color: AppColors
+                                                              .textSecondary,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Text(
+                                                '${option.eta} min away',
+                                                style: AppTextStyles.caption
+                                                    .copyWith(
+                                                      color: AppColors
+                                                          .textSecondary,
+                                                    ),
+                                              ),
+                                              if (option.type == 'prime')
+                                                Text(
+                                                  'Top rated',
+                                                  style: AppTextStyles.caption
+                                                      .copyWith(
+                                                        color: AppColors
+                                                            .primaryGreen,
+                                                      ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Text(
+                                                '₹${(option.fareEstimate.total - promoDiscount).toStringAsFixed(0)}',
+                                                style: AppTextStyles.bodyMedium
+                                                    .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                              ),
+                                              if (promoDiscount > 0)
+                                                Text(
+                                                  '₹${option.fareEstimate.total.toStringAsFixed(0)}',
+                                                  style: AppTextStyles.caption
+                                                      .copyWith(
+                                                        decoration:
+                                                            TextDecoration
+                                                                .lineThrough,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
 
-                  // Bottom Action Bar
-                  Container(
-                    padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgSurface,
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
-                    ),
-                    child: Column(
-                      children: [
-                        // Payment selector
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  backgroundColor: AppColors.bgSurface,
-                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                                  builder: (ctx) {
-                                    return SafeArea(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                            // Bottom Action Bar
+                            Container(
+                              padding: EdgeInsets.fromLTRB(
+                                20,
+                                16,
+                                20,
+                                MediaQuery.of(context).padding.bottom + 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.bgSurface,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, -4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  // Payment selector
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            backgroundColor:
+                                                AppColors.bgSurface,
+                                            shape: const RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.vertical(
+                                                    top: Radius.circular(20),
+                                                  ),
+                                            ),
+                                            builder: (ctx) {
+                                              return SafeArea(
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                    16.0,
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        'Select Payment Method',
+                                                        style: AppTextStyles.h3,
+                                                      ),
+                                                      const SizedBox(
+                                                        height: 16,
+                                                      ),
+                                                      _buildPaymentOption(
+                                                        ctx,
+                                                        ref,
+                                                        'cash',
+                                                        'Cash',
+                                                        Icons.money,
+                                                        Colors.orange,
+                                                      ),
+                                                      _buildPaymentOption(
+                                                        ctx,
+                                                        ref,
+                                                        'ola_money',
+                                                        'Alo Money',
+                                                        Icons
+                                                            .account_balance_wallet,
+                                                        AppColors.primaryGreen,
+                                                      ),
+                                                      _buildPaymentOption(
+                                                        ctx,
+                                                        ref,
+                                                        'upi',
+                                                        'UPI',
+                                                        Icons.qr_code,
+                                                        Colors.purple,
+                                                      ),
+                                                      _buildPaymentOption(
+                                                        ctx,
+                                                        ref,
+                                                        'card',
+                                                        'Card',
+                                                        Icons.credit_card,
+                                                        Colors.blue,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Row(
                                           children: [
-                                            Text('Select Payment Method', style: AppTextStyles.h3),
-                                            const SizedBox(height: 16),
-                                            _buildPaymentOption(ctx, ref, 'cash', 'Cash', Icons.money, Colors.orange),
-                                            _buildPaymentOption(ctx, ref, 'ola_money', 'Alo Money', Icons.account_balance_wallet, AppColors.primaryGreen),
-                                            _buildPaymentOption(ctx, ref, 'upi', 'UPI', Icons.qr_code, Colors.purple),
-                                            _buildPaymentOption(ctx, ref, 'card', 'Card', Icons.credit_card, Colors.blue),
+                                            Icon(
+                                              paymentMethod == 'cash'
+                                                  ? Icons.money
+                                                  : paymentMethod == 'ola_money'
+                                                  ? Icons.account_balance_wallet
+                                                  : paymentMethod == 'upi'
+                                                  ? Icons.qr_code
+                                                  : Icons.credit_card,
+                                              color: AppColors.primaryGreen,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              paymentMethod == 'cash'
+                                                  ? 'Cash'
+                                                  : paymentMethod == 'ola_money'
+                                                  ? 'Alo Money'
+                                                  : paymentMethod == 'upi'
+                                                  ? 'UPI'
+                                                  : 'Card',
+                                              style: AppTextStyles.bodyMedium,
+                                            ),
+                                            Icon(
+                                              Icons.keyboard_arrow_down,
+                                              color: AppColors.textSecondary,
+                                            ),
                                           ],
                                         ),
                                       ),
-                                    );
-                                  },
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    paymentMethod == 'cash' ? Icons.money : 
-                                    paymentMethod == 'ola_money' ? Icons.account_balance_wallet : 
-                                    paymentMethod == 'upi' ? Icons.qr_code : Icons.credit_card, 
-                                    color: AppColors.primaryGreen, size: 20
+                                      if (promoDiscount > 0)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryGreenLight,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Promo Applied',
+                                            style: AppTextStyles.caption
+                                                .copyWith(
+                                                  color: AppColors.primaryGreen,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        )
+                                      else
+                                        GestureDetector(
+                                          onTap: () =>
+                                              context.push('/payment-method'),
+                                          child: Text(
+                                            'Offers',
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
+                                                  color: AppColors.primaryGreen,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    paymentMethod == 'cash' ? 'Cash' : 
-                                    paymentMethod == 'ola_money' ? 'Alo Money' : 
-                                    paymentMethod == 'upi' ? 'UPI' : 'Card', 
-                                    style: AppTextStyles.bodyMedium
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () => context.push(
+                                          '/schedule-ride-booking',
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.bgCard,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.calendar_month,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: PrimaryButton(
+                                          text:
+                                              selectedRideType == null ||
+                                                  rideOptions.isEmpty
+                                              ? 'Select a Ride'
+                                              : 'Book ${rideOptions.firstWhere((o) => o.type == selectedRideType, orElse: () => rideOptions[0]).name}',
+                                          onPressed: () {
+                                            // Navigate to search screen
+                                            context.push('/driver-search');
+                                          },
+                                          disabled:
+                                              rideOptions.isEmpty ||
+                                              selectedRideType == null,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
                                 ],
                               ),
                             ),
-                            if (promoDiscount > 0)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(color: AppColors.primaryGreenLight, borderRadius: BorderRadius.circular(4)),
-                                child: Text('Promo Applied', style: AppTextStyles.caption.copyWith(color: AppColors.primaryGreen, fontWeight: FontWeight.bold)),
-                              )
-                            else
-                              GestureDetector(
-                                onTap: () => context.push('/payment-method'),
-                                child: Text('Offers', style: AppTextStyles.bodyMedium.copyWith(color: AppColors.primaryGreen, fontWeight: FontWeight.bold)),
-                              ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            GestureDetector(
-                              onTap: () => context.push('/schedule-ride-booking'),
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppColors.bgCard,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.border),
-                                ),
-                                child: Icon(Icons.calendar_month, color: AppColors.textPrimary),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: PrimaryButton(
-                                text: selectedRideType == null || rideOptions.isEmpty
-                                    ? 'Select a Ride'
-                                    : 'Book ${rideOptions.firstWhere((o) => o.type == selectedRideType, orElse: () => rideOptions[0]).name}',
-                                onPressed: () {
-                                  // Navigate to search screen
-                                  context.push('/driver-search');
-                                },
-                                disabled: rideOptions.isEmpty || selectedRideType == null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ).animate().slideY(begin: 1, end: 0, duration: 400.ms, curve: Curves.easeOutQuart),
-        ],
+                );
+              },
+            ).animate().slideY(
+              begin: 1,
+              end: 0,
+              duration: 400.ms,
+              curve: Curves.easeOutQuart,
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
-  Widget _buildPaymentOption(BuildContext context, WidgetRef ref, String id, String title, IconData icon, Color color) {
+  Widget _buildPaymentOption(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+    String title,
+    IconData icon,
+    Color color,
+  ) {
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(title, style: AppTextStyles.bodyMedium),

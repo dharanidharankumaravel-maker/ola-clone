@@ -70,14 +70,14 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
       setState(() {
         _highlightDestination = true;
       });
-      
+
       // Auto-open the destination search screen (or parcel) to save a click
       if (categoryName == 'Parcel') {
         context.push('/parcel');
       } else {
         context.push('/destination-search', extra: false);
       }
-      
+
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
           setState(() {
@@ -165,27 +165,35 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                       if (!_isDragging) {
                         setState(() => _isDragging = true);
                       }
-                      
+
                       _debounceTimer?.cancel();
-                      _debounceTimer = Timer(const Duration(milliseconds: 600), () async {
-                        if (!mounted) return;
-                        setState(() {
-                          _isDragging = false;
-                          _isFetchingReverseGeocode = true;
-                        });
-                        
-                        final repo = ref.read(mapRepositoryProvider);
-                        final center = _mapController.camera.center;
-                        final address = await repo.getReverseGeocode(center.latitude, center.longitude);
-                        
-                        if (mounted && address != null) {
-                          ref.read(locationProvider.notifier).setPickup(address);
-                        }
-                        
-                        if (mounted) {
-                          setState(() => _isFetchingReverseGeocode = false);
-                        }
-                      });
+                      _debounceTimer = Timer(
+                        const Duration(milliseconds: 600),
+                        () async {
+                          if (!mounted) return;
+                          setState(() {
+                            _isDragging = false;
+                            _isFetchingReverseGeocode = true;
+                          });
+
+                          final repo = ref.read(mapRepositoryProvider);
+                          final center = _mapController.camera.center;
+                          final address = await repo.getReverseGeocode(
+                            center.latitude,
+                            center.longitude,
+                          );
+
+                          if (mounted && address != null) {
+                            ref
+                                .read(locationProvider.notifier)
+                                .setPickup(address);
+                          }
+
+                          if (mounted) {
+                            setState(() => _isFetchingReverseGeocode = false);
+                          }
+                        },
+                      );
                     }
                   },
                   onMapReady: () {
@@ -200,7 +208,8 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_2ugb_1_4b8aaeb78ca6b499d5d80e85',
                     userAgentPackageName: 'com.ola.customer',
                   ),
                   Consumer(
@@ -216,8 +225,13 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                               turns: car.heading / 360,
                               duration: const Duration(seconds: 3),
                               curve: Curves.linear,
-                              child: Image.asset('assets/car_top.png', 
-                                errorBuilder: (_,__,___) => Icon(Icons.directions_car, color: AppColors.textSecondary, size: 24),
+                              child: Image.asset(
+                                'assets/car_top.png',
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.directions_car,
+                                  color: AppColors.textSecondary,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           );
@@ -239,7 +253,11 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                               color: Colors.blue.withOpacity(0.2),
                             ),
                             child: const Center(
-                              child: Icon(Icons.my_location, color: Colors.blue, size: 20),
+                              child: Icon(
+                                Icons.my_location,
+                                color: Colors.blue,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
@@ -248,7 +266,9 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 ],
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen)),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
+            ),
             error: (e, s) => Center(child: Text('Error getting location: $e')),
           ),
 
@@ -299,9 +319,13 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              _isDragging || _isFetchingReverseGeocode 
-                                ? 'Fetching location...' 
-                                : (currentPickup?.shortAddress ?? currentLocationAsync.value?.shortAddress ?? 'Fetching location...'),
+                              _isDragging || _isFetchingReverseGeocode
+                                  ? 'Fetching location...'
+                                  : (currentPickup?.shortAddress ??
+                                        currentLocationAsync
+                                            .value
+                                            ?.shortAddress ??
+                                        'Fetching location...'),
                               style: AppTextStyles.bodyMedium,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -321,26 +345,37 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
             child: Align(
               alignment: Alignment.center,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 40), // offset by half icon height to put tip on center
+                padding: const EdgeInsets.only(
+                  bottom: 40,
+                ), // offset by half icon height to put tip on center
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black87,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         _isDragging ? 'Drop pin here' : 'Pick up here',
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Icon(
                       Icons.location_on,
                       size: 40,
-                      color: _isDragging ? AppColors.textSecondary : AppColors.primaryGreen,
+                      color: _isDragging
+                          ? AppColors.textSecondary
+                          : AppColors.primaryGreen,
                     ),
                   ],
                 ),
@@ -357,7 +392,9 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
               return Container(
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
@@ -372,18 +409,30 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                   children: [
                     Animate(
                       key: ValueKey(_highlightDestination),
-                      effects: _highlightDestination ? [
-                        const ShakeEffect(duration: Duration(milliseconds: 500), hz: 6),
-                        const ScaleEffect(duration: Duration(milliseconds: 150), begin: Offset(1.0, 1.0), end: Offset(1.02, 1.02)),
-                      ] : [],
+                      effects: _highlightDestination
+                          ? [
+                              const ShakeEffect(
+                                duration: Duration(milliseconds: 500),
+                                hz: 6,
+                              ),
+                              const ScaleEffect(
+                                duration: Duration(milliseconds: 150),
+                                begin: Offset(1.0, 1.0),
+                                end: Offset(1.02, 1.02),
+                              ),
+                            ]
+                          : [],
                       child: GestureDetector(
                         onTap: () {
-                          if (currentPickup == null && currentLocationAsync.value != null) {
-                            ref.read(locationProvider.notifier).setPickup(currentLocationAsync.value!);
+                          if (currentPickup == null &&
+                              currentLocationAsync.value != null) {
+                            ref
+                                .read(locationProvider.notifier)
+                                .setPickup(currentLocationAsync.value!);
                           }
-                          
+
                           _updateHomeCategory(homeCategory);
-                          
+
                           if (homeCategory == 'Parcel') {
                             context.push('/parcel');
                           } else {
@@ -391,17 +440,28 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.bgSurface,
                             borderRadius: BorderRadius.circular(30),
                             border: Border.all(
-                              color: _highlightDestination ? AppColors.accentOrange : AppColors.primaryGreen, 
-                              width: _highlightDestination ? 2.5 : 1.5
+                              color: _highlightDestination
+                                  ? AppColors.accentOrange
+                                  : AppColors.primaryGreen,
+                              width: _highlightDestination ? 2.5 : 1.5,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: (_highlightDestination ? AppColors.accentOrange : AppColors.primaryGreen).withOpacity(_highlightDestination ? 0.3 : 0.1),
+                                color:
+                                    (_highlightDestination
+                                            ? AppColors.accentOrange
+                                            : AppColors.primaryGreen)
+                                        .withOpacity(
+                                          _highlightDestination ? 0.3 : 0.1,
+                                        ),
                                 blurRadius: _highlightDestination ? 12 : 4,
                                 spreadRadius: _highlightDestination ? 2 : 0,
                                 offset: const Offset(0, 2),
@@ -412,52 +472,99 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                             children: [
                               Icon(Icons.search, color: AppColors.textPrimary),
                               const SizedBox(width: 12),
-                              Text('Enter Destination', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+                              Text(
+                                'Enter Destination',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 24),
-  
+
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
                       child: Row(
                         children: [
-                          _buildCategory('assets/daily.png', Icons.directions_car, 'Daily', isSelected: homeCategory == 'Daily', onTap: () {
-                            _updateHomeCategory('Daily');
-                            _triggerDestinationPrompt('Daily');
-                          }),
-                          _buildCategory('assets/bike_icon.png', Icons.motorcycle, 'Bike', isSelected: homeCategory == 'Bike', onTap: () {
-                            _updateHomeCategory('Bike');
-                            _triggerDestinationPrompt('Bike');
-                          }),
-                          _buildCategory('assets/auto_icon.png', Icons.electric_rickshaw, 'Auto', isSelected: homeCategory == 'Auto', onTap: () {
-                            _updateHomeCategory('Auto');
-                            _triggerDestinationPrompt('Auto');
-                          }),
-                          _buildCategory('assets/scooter_icon.png', Icons.moped, 'Scooter', isSelected: homeCategory == 'Scooter', onTap: () {
-                            _updateHomeCategory('Scooter');
-                            _triggerDestinationPrompt('Scooter');
-                          }),
-                          _buildCategory('assets/rental_icon.png', Icons.key, 'Rentals', isSelected: homeCategory == 'Rentals', onTap: () {
-                            _updateHomeCategory('Rentals');
-                            _triggerDestinationPrompt('Rentals');
-                          }),
-                          _buildCategory('assets/outstation_icon.png', Icons.map_outlined, 'Outstation', isSelected: homeCategory == 'Outstation', onTap: () {
-                            _updateHomeCategory('Outstation');
-                            _triggerDestinationPrompt('Outstation');
-                          }),
-                          _buildCategory('assets/parcel.svg', Icons.inventory_2_outlined, 'Parcel', isSelected: homeCategory == 'Parcel', onTap: () {
-                            _updateHomeCategory('Parcel');
-                            _triggerDestinationPrompt('Parcel');
-                          }),
+                          _buildCategory(
+                            'assets/daily.png',
+                            Icons.directions_car,
+                            'Daily',
+                            isSelected: homeCategory == 'Daily',
+                            onTap: () {
+                              _updateHomeCategory('Daily');
+                              _triggerDestinationPrompt('Daily');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/bike_icon.png',
+                            Icons.motorcycle,
+                            'Bike',
+                            isSelected: homeCategory == 'Bike',
+                            onTap: () {
+                              _updateHomeCategory('Bike');
+                              _triggerDestinationPrompt('Bike');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/auto_icon.png',
+                            Icons.electric_rickshaw,
+                            'Auto',
+                            isSelected: homeCategory == 'Auto',
+                            onTap: () {
+                              _updateHomeCategory('Auto');
+                              _triggerDestinationPrompt('Auto');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/scooter_icon.png',
+                            Icons.moped,
+                            'Scooter',
+                            isSelected: homeCategory == 'Scooter',
+                            onTap: () {
+                              _updateHomeCategory('Scooter');
+                              _triggerDestinationPrompt('Scooter');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/rental_icon.png',
+                            Icons.key,
+                            'Rentals',
+                            isSelected: homeCategory == 'Rentals',
+                            onTap: () {
+                              _updateHomeCategory('Rentals');
+                              _triggerDestinationPrompt('Rentals');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/outstation_icon.png',
+                            Icons.map_outlined,
+                            'Outstation',
+                            isSelected: homeCategory == 'Outstation',
+                            onTap: () {
+                              _updateHomeCategory('Outstation');
+                              _triggerDestinationPrompt('Outstation');
+                            },
+                          ),
+                          _buildCategory(
+                            'assets/parcel.svg',
+                            Icons.inventory_2_outlined,
+                            'Parcel',
+                            isSelected: homeCategory == 'Parcel',
+                            onTap: () {
+                              _updateHomeCategory('Parcel');
+                              _triggerDestinationPrompt('Parcel');
+                            },
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-  
+
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       alignment: Alignment.center,
@@ -478,7 +585,8 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         height: 250,
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -490,7 +598,8 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         height: 250,
                         fit: BoxFit.cover,
                         alignment: Alignment.center,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -500,7 +609,8 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                         'assets/ola_ride_save.png',
                         width: double.infinity,
                         fit: BoxFit.fitWidth,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox(),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox(),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -514,7 +624,10 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
     );
   }
 
-  Widget _buildCircularButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildCircularButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -536,7 +649,13 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
     );
   }
 
-  Widget _buildCategory(String imagePath, IconData icon, String label, {required bool isSelected, required VoidCallback onTap}) {
+  Widget _buildCategory(
+    String imagePath,
+    IconData icon,
+    String label, {
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     final double imageScale;
     if (label == 'Parcel') {
       imageScale = 0.8;
@@ -555,51 +674,82 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryGreenLight.withOpacity(0.3) : AppColors.bgSurface,
+                color: isSelected
+                    ? AppColors.primaryGreenLight.withOpacity(0.3)
+                    : AppColors.bgSurface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border, width: isSelected ? 2 : 1),
+                border: Border.all(
+                  color: isSelected ? AppColors.primaryGreen : AppColors.border,
+                  width: isSelected ? 2 : 1,
+                ),
               ),
               child: Center(
                 child: Transform.scale(
                   scale: imageScale,
                   alignment: Alignment.center,
-                  child: imagePath.endsWith('.svg') 
+                  child: imagePath.endsWith('.svg')
                       ? SvgPicture.asset(
-                          imagePath, 
+                          imagePath,
                           fit: BoxFit.contain,
                           alignment: Alignment.center,
                         )
-                      : (imagePath.isNotEmpty 
-                          ? Image.asset(
-                              imagePath, 
-                              fit: BoxFit.contain,
-                              alignment: Alignment.center,
-                              errorBuilder: (context, error, stackTrace) => Icon(icon, size: 36, color: AppColors.textSecondary),
-                            )
-                          : Icon(icon, size: 36, color: AppColors.textSecondary)),
+                      : (imagePath.isNotEmpty
+                            ? Image.asset(
+                                imagePath,
+                                fit: BoxFit.contain,
+                                alignment: Alignment.center,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(
+                                      icon,
+                                      size: 36,
+                                      color: AppColors.textSecondary,
+                                    ),
+                              )
+                            : Icon(
+                                icon,
+                                size: 36,
+                                color: AppColors.textSecondary,
+                              )),
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            Text(label, style: AppTextStyles.caption.copyWith(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-              color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
-            ), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(
+              label,
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected
+                    ? AppColors.primaryGreen
+                    : AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildRecentSearch(String title, String subtitle, bool showDivider, VoidCallback onTap) {
+  Widget _buildRecentSearch(
+    String title,
+    String subtitle,
+    bool showDivider,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.bgCard,
-          borderRadius: showDivider ? null : const BorderRadius.vertical(bottom: Radius.circular(12)),
-          border: showDivider ? Border(bottom: BorderSide(color: AppColors.border)) : null,
+          borderRadius: showDivider
+              ? null
+              : const BorderRadius.vertical(bottom: Radius.circular(12)),
+          border: showDivider
+              ? Border(bottom: BorderSide(color: AppColors.border))
+              : null,
         ),
         child: Row(
           children: [
@@ -609,8 +759,18 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600)),
-                  Text(subtitle, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                  Text(
+                    title,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -623,7 +783,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
 
   Widget _buildDrawer() {
     final user = ref.watch(authProvider).value;
-    
+
     return Drawer(
       backgroundColor: AppColors.bgSurface,
       child: SafeArea(
@@ -648,7 +808,10 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.primaryGreenLight,
-                        border: Border.all(color: AppColors.primaryGreen, width: 2),
+                        border: Border.all(
+                          color: AppColors.primaryGreen,
+                          width: 2,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: user?.profilePhoto != null
@@ -661,7 +824,9 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                               ),
                             )
                           : Text(
-                              user?.name?.isNotEmpty == true ? user!.name![0].toUpperCase() : '?',
+                              user?.name?.isNotEmpty == true
+                                  ? user!.name![0].toUpperCase()
+                                  : '?',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -674,9 +839,17 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user?.name ?? 'Set your name', style: AppTextStyles.h3),
+                          Text(
+                            user?.name ?? 'Set your name',
+                            style: AppTextStyles.h3,
+                          ),
                           const SizedBox(height: 4),
-                          Text(user?.phone ?? '', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                          Text(
+                            user?.phone ?? '',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -685,7 +858,7 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 ),
               ),
             ),
-            
+
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -694,22 +867,38 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                     context.pop();
                     context.push('/ride-history');
                   }),
-                  _buildDrawerItem(Icons.account_balance_wallet_outlined, 'Alo Wallet', () {
-                    context.pop();
-                    context.push('/wallet');
-                  }),
-                  _buildDrawerItem(Icons.inventory_2_outlined, 'Alo Parcel', () {
-                    context.pop();
-                    context.push('/parcel');
-                  }),
-                  _buildDrawerItem(Icons.location_on_outlined, 'Saved Places', () {
-                    context.pop();
-                    context.push('/saved-places');
-                  }),
-                  _buildDrawerItem(Icons.headset_mic_outlined, 'Help & Support', () {
-                    context.pop();
-                    context.push('/support');
-                  }),
+                  _buildDrawerItem(
+                    Icons.account_balance_wallet_outlined,
+                    'Alo Wallet',
+                    () {
+                      context.pop();
+                      context.push('/wallet');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.inventory_2_outlined,
+                    'Alo Parcel',
+                    () {
+                      context.pop();
+                      context.push('/parcel');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.location_on_outlined,
+                    'Saved Places',
+                    () {
+                      context.pop();
+                      context.push('/saved-places');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.headset_mic_outlined,
+                    'Help & Support',
+                    () {
+                      context.pop();
+                      context.push('/support');
+                    },
+                  ),
                   _buildDrawerItem(Icons.settings_outlined, 'Settings', () {
                     context.pop();
                     context.push('/settings');
@@ -717,11 +906,16 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
                 ],
               ),
             ),
-            
+
             // Footer
             Padding(
               padding: const EdgeInsets.all(20),
-              child: Text('App Version 1.0.0', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+              child: Text(
+                'App Version 1.0.0',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
             ),
           ],
         ),
@@ -732,10 +926,12 @@ class _HomeMapScreenState extends ConsumerState<HomeMapScreen> {
   Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: AppColors.textPrimary, size: 24),
-      title: Text(title, style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500)),
+      title: Text(
+        title,
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
+      ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
     );
   }
 }
-

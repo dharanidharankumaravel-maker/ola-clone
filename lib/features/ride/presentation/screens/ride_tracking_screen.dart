@@ -68,32 +68,40 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
         }
       } else if (currentRide.status == 'arrived') {
         if (_tickCount > 2) {
-          ref.read(currentRideProvider.notifier).updateRideStatus('trip_started');
+          ref
+              .read(currentRideProvider.notifier)
+              .updateRideStatus('trip_started');
           _tickCount = 0;
         }
       } else if (currentRide.status == 'trip_started') {
         if (_routePoints.isNotEmpty) {
           _simulationProgress += 0.05; // 20 second mock trip
-          
+
           if (_simulationProgress >= 1.0) {
             _simulationProgress = 1.0;
-            ref.read(currentRideProvider.notifier).updateRideStatus('completed');
+            ref
+                .read(currentRideProvider.notifier)
+                .updateRideStatus('completed');
             timer.cancel();
           }
-          
+
           LatLng nextPoint = _routePoints.last;
 
           if (_routePoints.length == 2) {
             final start = _routePoints.first;
             final end = _routePoints.last;
-            final lat = start.latitude + (end.latitude - start.latitude) * _simulationProgress;
-            final lng = start.longitude + (end.longitude - start.longitude) * _simulationProgress;
+            final lat =
+                start.latitude +
+                (end.latitude - start.latitude) * _simulationProgress;
+            final lng =
+                start.longitude +
+                (end.longitude - start.longitude) * _simulationProgress;
             nextPoint = LatLng(lat, lng);
           } else {
             double totalSegments = (_routePoints.length - 1).toDouble();
             double exactIndex = _simulationProgress * totalSegments;
             int baseIndex = exactIndex.floor();
-            
+
             if (baseIndex >= _routePoints.length - 1) {
               nextPoint = _routePoints.last;
             } else {
@@ -101,13 +109,15 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               final p1 = _routePoints[baseIndex];
               final p2 = _routePoints[baseIndex + 1];
               final lat = p1.latitude + (p2.latitude - p1.latitude) * remainder;
-              final lng = p1.longitude + (p2.longitude - p1.longitude) * remainder;
+              final lng =
+                  p1.longitude + (p2.longitude - p1.longitude) * remainder;
               nextPoint = LatLng(lat, lng);
             }
           }
-          
+
           double heading = currentRide.driver!.heading;
-          if (nextPoint.latitude != currentRide.driver!.latitude || nextPoint.longitude != currentRide.driver!.longitude) {
+          if (nextPoint.latitude != currentRide.driver!.latitude ||
+              nextPoint.longitude != currentRide.driver!.longitude) {
             final startLat = currentRide.driver!.latitude * (math.pi / 180.0);
             final startLng = currentRide.driver!.longitude * (math.pi / 180.0);
             final endLat = nextPoint.latitude * (math.pi / 180.0);
@@ -115,7 +125,8 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
 
             final dLng = endLng - startLng;
             final y = math.sin(dLng) * math.cos(endLat);
-            final x = math.cos(startLat) * math.sin(endLat) -
+            final x =
+                math.cos(startLat) * math.sin(endLat) -
                 math.sin(startLat) * math.cos(endLat) * math.cos(dLng);
             final bearing = math.atan2(y, x) * (180.0 / math.pi);
             heading = (bearing + 360.0) % 360.0;
@@ -126,7 +137,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               latitude: nextPoint.latitude,
               longitude: nextPoint.longitude,
               heading: heading,
-            )
+            ),
           );
           ref.read(currentRideProvider.notifier).setCurrentRide(updatedRide);
         } else {
@@ -144,9 +155,12 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     final repo = ref.read(mapRepositoryProvider);
     final points = await repo.getRoutePolylines(
       LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude),
-      LatLng(currentRide.destination.latitude, currentRide.destination.longitude),
+      LatLng(
+        currentRide.destination.latitude,
+        currentRide.destination.longitude,
+      ),
     );
-    
+
     if (mounted) {
       setState(() {
         _routePoints = points;
@@ -154,7 +168,9 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       if (points.isNotEmpty) {
         final bounds = LatLngBounds.fromPoints(points);
         try {
-          _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+          _mapController.fitCamera(
+            CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+          );
         } catch (_) {}
       }
     }
@@ -177,7 +193,9 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
     final prefs = await SharedPreferences.getInstance();
     final emergencyContact = prefs.getString('emergency_contact');
     final targetNumber = emergencyContact ?? '112';
-    final targetName = emergencyContact != null ? 'your emergency contact ($emergencyContact)' : 'emergency services (112)';
+    final targetName = emergencyContact != null
+        ? 'your emergency contact ($emergencyContact)'
+        : 'emergency services (112)';
 
     if (!mounted) return;
 
@@ -185,7 +203,9 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('🆘 Emergency SOS'),
-        content: Text('This will share your location with $targetName and trigger a call.'),
+        content: Text(
+          'This will share your location with $targetName and trigger a call.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -194,14 +214,18 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              
+
               if (emergencyContact != null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Live location shared to $emergencyContact')),
+                  SnackBar(
+                    content: Text('Live location shared to $emergencyContact'),
+                  ),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Live location shared to Ola Safety team')),
+                  const SnackBar(
+                    content: Text('Live location shared to Ola Safety team'),
+                  ),
                 );
               }
 
@@ -210,7 +234,10 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                 await launchUrl(url);
               }
             },
-            child: const Text('Activate SOS', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Activate SOS',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -229,9 +256,19 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Want a driver faster?', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Want a driver faster?',
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Add a tip to your ride to prioritize your request.', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+          Text(
+            'Add a tip to your ride to prioritize your request.',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -254,15 +291,20 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
         setState(() {
           _selectedTip = amount;
         });
-        
+
         final currentRide = ref.read(currentRideProvider);
         if (currentRide != null) {
-           ref.read(currentRideProvider.notifier).setCurrentRide(currentRide.copyWith(tipAmount: amount));
+          ref
+              .read(currentRideProvider.notifier)
+              .setCurrentRide(currentRide.copyWith(tipAmount: amount));
         }
 
         if (amount > 0) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Tip of ₹${amount.toInt()} added to your ride!'), duration: const Duration(seconds: 1)),
+            SnackBar(
+              content: Text('Tip of ₹${amount.toInt()} added to your ride!'),
+              duration: const Duration(seconds: 1),
+            ),
           );
         }
       },
@@ -270,10 +312,17 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryGreen : AppColors.bgSurface,
-          border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.border),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryGreen : AppColors.border,
+          ),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Text(label, style: AppTextStyles.bodyMedium.copyWith(color: isSelected ? Colors.white : AppColors.textPrimary)),
+        child: Text(
+          label,
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isSelected ? Colors.white : AppColors.textPrimary,
+          ),
+        ),
       ),
     );
   }
@@ -302,15 +351,20 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                   // Reset booking state before navigating home
                   ref.read(locationProvider.notifier).clearDestination();
                   ref.read(selectedRideTypeProvider.notifier).update(null);
-                  ref.read(selectedRideCategoryProvider.notifier).update('daily');
-                  
+                  ref
+                      .read(selectedRideCategoryProvider.notifier)
+                      .update('daily');
+
                   Navigator.pop(ctx);
                   context.go('/');
                 },
-                child: const Text('OK', style: TextStyle(color: AppColors.primaryGreen)),
-              )
+                child: const Text(
+                  'OK',
+                  style: TextStyle(color: AppColors.primaryGreen),
+                ),
+              ),
             ],
-          )
+          ),
         );
       }
     });
@@ -332,26 +386,39 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
       ghostAsset = 'assets/ghost_auto.png';
       fallbackIcon = Icons.electric_rickshaw;
     }
-    
+
     String getStatusLabel(String s) {
       if (isParcel) {
         switch (s) {
-          case 'searching': return 'Finding Delivery Partner...';
-          case 'accepted': return 'Delivery Partner is on the way';
-          case 'arrived': return 'Delivery Partner has arrived!';
-          case 'trip_started': return 'Parcel in transit';
-          case 'completed': return 'Delivery completed';
-          case 'cancelled': return 'Delivery cancelled';
+          case 'searching':
+            return 'Finding Delivery Partner...';
+          case 'accepted':
+            return 'Delivery Partner is on the way';
+          case 'arrived':
+            return 'Delivery Partner has arrived!';
+          case 'trip_started':
+            return 'Parcel in transit';
+          case 'completed':
+            return 'Delivery completed';
+          case 'cancelled':
+            return 'Delivery cancelled';
         }
       }
       return statusLabels[s] ?? 'Unknown status';
     }
-    
-    LatLng target = LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude);
-    if (currentRide.driver != null && (status == 'accepted' || status == 'trip_started')) {
-      target = LatLng(currentRide.driver!.latitude, currentRide.driver!.longitude);
+
+    LatLng target = LatLng(
+      currentRide.pickup.latitude,
+      currentRide.pickup.longitude,
+    );
+    if (currentRide.driver != null &&
+        (status == 'accepted' || status == 'trip_started')) {
+      target = LatLng(
+        currentRide.driver!.latitude,
+        currentRide.driver!.longitude,
+      );
     }
-    
+
     if (currentRide.driver != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
@@ -366,22 +433,28 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
         children: [
           FlutterMap(
             mapController: _mapController,
-            options: MapOptions(
-              initialCenter: target,
-              initialZoom: 15,
-            ),
+            options: MapOptions(initialCenter: target, initialZoom: 15),
             children: [
               TileLayer(
-                urlTemplate: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+                urlTemplate:
+                    'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_2ugb_1_4b8aaeb78ca6b499d5d80e85',
                 userAgentPackageName: 'com.ola.customer',
               ),
               PolylineLayer(
                 polylines: [
                   Polyline(
-                    points: _routePoints.isNotEmpty ? _routePoints : [
-                      LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude),
-                      LatLng(currentRide.destination.latitude, currentRide.destination.longitude),
-                    ],
+                    points: _routePoints.isNotEmpty
+                        ? _routePoints
+                        : [
+                            LatLng(
+                              currentRide.pickup.latitude,
+                              currentRide.pickup.longitude,
+                            ),
+                            LatLng(
+                              currentRide.destination.latitude,
+                              currentRide.destination.longitude,
+                            ),
+                          ],
                     color: AppColors.primaryGreen,
                     strokeWidth: 4.0,
                   ),
@@ -390,25 +463,48 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               MarkerLayer(
                 markers: [
                   Marker(
-                    point: LatLng(currentRide.pickup.latitude, currentRide.pickup.longitude),
+                    point: LatLng(
+                      currentRide.pickup.latitude,
+                      currentRide.pickup.longitude,
+                    ),
                     width: 40,
                     height: 40,
-                    child: const Icon(Icons.location_on, color: Colors.green, size: 40),
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.green,
+                      size: 40,
+                    ),
                   ),
                   Marker(
-                    point: LatLng(currentRide.destination.latitude, currentRide.destination.longitude),
+                    point: LatLng(
+                      currentRide.destination.latitude,
+                      currentRide.destination.longitude,
+                    ),
                     width: 40,
                     height: 40,
-                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                    child: const Icon(
+                      Icons.location_on,
+                      color: Colors.red,
+                      size: 40,
+                    ),
                   ),
                   if (currentRide.driver != null)
                     Marker(
-                      point: LatLng(currentRide.driver!.latitude, currentRide.driver!.longitude),
+                      point: LatLng(
+                        currentRide.driver!.latitude,
+                        currentRide.driver!.longitude,
+                      ),
                       width: 40,
                       height: 40,
                       child: Transform.rotate(
                         angle: currentRide.driver!.heading * (3.14159 / 180),
-                        child: Image.asset(ghostAsset, width: 40, height: 40, errorBuilder: (_,__,___) => Icon(fallbackIcon, color: Colors.blue, size: 40)),
+                        child: Image.asset(
+                          ghostAsset,
+                          width: 40,
+                          height: 40,
+                          errorBuilder: (_, __, ___) =>
+                              Icon(fallbackIcon, color: Colors.blue, size: 40),
+                        ),
                       ),
                     ),
                 ],
@@ -435,10 +531,18 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.bgCard,
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      _isDetailsCollapsed ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      _isDetailsCollapsed
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -449,30 +553,42 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       builder: (context) {
                         final savedPlaces = ref.watch(savedPlacesProvider);
                         final locationToSave = currentRide.destination;
-                        final isSaved = savedPlaces.any((p) => 
-                          p.location.latitude == locationToSave.latitude && 
-                          p.location.longitude == locationToSave.longitude
+                        final isSaved = savedPlaces.any(
+                          (p) =>
+                              p.location.latitude == locationToSave.latitude &&
+                              p.location.longitude == locationToSave.longitude,
                         );
-                        
+
                         return GestureDetector(
                           onTap: () {
                             if (isSaved) {
-                              final place = savedPlaces.firstWhere((p) => 
-                                p.location.latitude == locationToSave.latitude && 
-                                p.location.longitude == locationToSave.longitude
+                              final place = savedPlaces.firstWhere(
+                                (p) =>
+                                    p.location.latitude ==
+                                        locationToSave.latitude &&
+                                    p.location.longitude ==
+                                        locationToSave.longitude,
                               );
-                              ref.read(savedPlacesProvider.notifier).removePlace(place);
+                              ref
+                                  .read(savedPlacesProvider.notifier)
+                                  .removePlace(place);
                             } else {
-                              ref.read(savedPlacesProvider.notifier).addPlace(
-                                SavedPlace(
-                                  title: locationToSave.shortAddress ?? 'Saved Place',
-                                  subtitle: locationToSave.formattedAddress,
-                                  location: locationToSave,
-                                ),
-                              );
+                              ref
+                                  .read(savedPlacesProvider.notifier)
+                                  .addPlace(
+                                    SavedPlace(
+                                      title:
+                                          locationToSave.shortAddress ??
+                                          'Saved Place',
+                                      subtitle: locationToSave.formattedAddress,
+                                      location: locationToSave,
+                                    ),
+                                  );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Text('Destination added to saved places!'), 
+                                  content: const Text(
+                                    'Destination added to saved places!',
+                                  ),
                                   backgroundColor: AppColors.primaryGreen,
                                   duration: const Duration(seconds: 1),
                                 ),
@@ -486,27 +602,51 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                             decoration: BoxDecoration(
                               color: AppColors.bgCard,
                               shape: BoxShape.circle,
-                              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Icon(
                               isSaved ? Icons.favorite : Icons.favorite_border,
-                              color: isSaved ? Colors.red : AppColors.textPrimary,
+                              color: isSaved
+                                  ? Colors.red
+                                  : AppColors.textPrimary,
                               size: 20,
                             ),
                           ),
                         );
-                      }
+                      },
                     ),
                     GestureDetector(
                       onTap: _handleSOS,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red,
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 2))],
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red.withOpacity(0.4),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        child: Text('SOS', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        child: Text(
+                          'SOS',
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -515,25 +655,41 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
             ),
           ),
 
-          if (currentRide.eta != null && (status == 'accepted' || status == 'trip_started'))
+          if (currentRide.eta != null &&
+              (status == 'accepted' || status == 'trip_started'))
             Positioned(
               top: MediaQuery.of(context).padding.top + 76,
               left: 0,
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.bgCard,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.schedule, color: color, size: 16),
                       const SizedBox(width: 8),
-                      Text('${currentRide.eta} min away', style: AppTextStyles.bodyMedium.copyWith(color: color, fontWeight: FontWeight.bold)),
+                      Text(
+                        '${currentRide.eta} min away',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -550,8 +706,16 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.bgSurface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, -4))],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -563,20 +727,40 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: color.withOpacity(0.1),
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Text(getStatusLabel(status), style: AppTextStyles.bodyMedium.copyWith(color: color, fontWeight: FontWeight.bold)),
+                              child: Text(
+                                getStatusLabel(status),
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: color,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                             Icon(
-                              _isDetailsCollapsed ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              _isDetailsCollapsed
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
                               color: color,
                             ),
                           ],
@@ -584,8 +768,7 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                       ),
                     ),
                     if (!_isDetailsCollapsed) ...[
-                      if (status == 'searching')
-                        _buildTipSection(),
+                      if (status == 'searching') _buildTipSection(),
                       if (currentRide.driver != null)
                         DriverCard(
                           driver: currentRide.driver!,
@@ -594,21 +777,41 @@ class _RideTrackingScreenState extends ConsumerState<RideTrackingScreen> {
                           fallbackIcon: fallbackIcon,
                           onCall: () => _handleCall(currentRide.driver!.phone),
                           onMessage: () {},
-                          onShareEta: () => _handleShareEta('${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})'),
+                          onShareEta: () => _handleShareEta(
+                            '${currentRide.driver!.vehicleModel} (${currentRide.driver!.vehicleNumber})',
+                          ),
                         ),
                       if (currentRide.parcelDetails != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           color: AppColors.bgSurface,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Divider(color: AppColors.border),
                               const SizedBox(height: 8),
-                              Text('Parcel Info: ${currentRide.parcelDetails!.contents} (${currentRide.parcelDetails!.weightCategory == 'upto_5' ? 'Up to 5 kg' : '5 - 15 kg'})', style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.bold)),
+                              Text(
+                                'Parcel Info: ${currentRide.parcelDetails!.contents} (${currentRide.parcelDetails!.weightCategory == 'upto_5' ? 'Up to 5 kg' : '5 - 15 kg'})',
+                                style: AppTextStyles.caption.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text('Sender: ${currentRide.parcelDetails!.senderName} • ${currentRide.parcelDetails!.senderPhone}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-                              Text('Receiver: ${currentRide.parcelDetails!.receiverName} • ${currentRide.parcelDetails!.receiverPhone}', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+                              Text(
+                                'Sender: ${currentRide.parcelDetails!.senderName} • ${currentRide.parcelDetails!.senderPhone}',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                'Receiver: ${currentRide.parcelDetails!.receiverName} • ${currentRide.parcelDetails!.receiverPhone}',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                             ],
                           ),
                         ),
